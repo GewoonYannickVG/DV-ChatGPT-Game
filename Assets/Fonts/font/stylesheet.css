@@ -1,0 +1,168 @@
+@font-face {
+    font-family: 'Hexaframe CF';
+    src: url('HexaframeCF-Bold.eot');
+    src: local('Hexaframe CF Bold'), local('HexaframeCF-Bold'),
+        url('HexaframeCF-Bold.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-Bold.woff2') format('woff2'),
+        url('HexaframeCF-Bold.woff') format('woff'),
+        url('HexaframeCF-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Bold Oblique';
+    src: url('HexaframeCF-BoldOblique.eot');
+    src: local('Hexaframe CF Bold Oblique'), local('HexaframeCF-BoldOblique'),
+        url('HexaframeCF-BoldOblique.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-BoldOblique.woff2') format('woff2'),
+        url('HexaframeCF-BoldOblique.woff') format('woff'),
+        url('HexaframeCF-BoldOblique.ttf') format('truetype');
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Extra';
+    src: url('HexaframeCF-ExtraLight.eot');
+    src: local('Hexaframe CF Extra Light'), local('HexaframeCF-ExtraLight'),
+        url('HexaframeCF-ExtraLight.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-ExtraLight.woff2') format('woff2'),
+        url('HexaframeCF-ExtraLight.woff') format('woff'),
+        url('HexaframeCF-ExtraLight.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Extra';
+    src: url('HexaframeCF-ExtraBold.eot');
+    src: local('Hexaframe CF Extra Bold'), local('HexaframeCF-ExtraBold'),
+        url('HexaframeCF-ExtraBold.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-ExtraBold.woff2') format('woff2'),
+        url('HexaframeCF-ExtraBold.woff') format('woff'),
+        url('HexaframeCF-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF';
+    src: url('HexaframeCF-Light.eot');
+    src: local('Hexaframe CF Light'), local('HexaframeCF-Light'),
+        url('HexaframeCF-Light.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-Light.woff2') format('woff2'),
+        url('HexaframeCF-Light.woff') format('woff'),
+        url('HexaframeCF-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Light Oblique';
+    src: url('HexaframeCF-LightOblique.eot');
+    src: local('Hexaframe CF Light Oblique'), local('HexaframeCF-LightOblique'),
+        url('HexaframeCF-LightOblique.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-LightOblique.woff2') format('woff2'),
+        url('HexaframeCF-LightOblique.woff') format('woff'),
+        url('HexaframeCF-LightOblique.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Oblique';
+    src: url('HexaframeCF-RegularOblique.eot');
+    src: local('Hexaframe CF Oblique'), local('HexaframeCF-RegularOblique'),
+        url('HexaframeCF-RegularOblique.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-RegularOblique.woff2') format('woff2'),
+        url('HexaframeCF-RegularOblique.woff') format('woff'),
+        url('HexaframeCF-RegularOblique.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Extra Bold Oblique';
+    src: url('HexaframeCF-ExtraBoldOblique.eot');
+    src: local('Hexaframe CF Extra Bold Oblique'), local('HexaframeCF-ExtraBoldOblique'),
+        url('HexaframeCF-ExtraBoldOblique.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-ExtraBoldOblique.woff2') format('woff2'),
+        url('HexaframeCF-ExtraBoldOblique.woff') format('woff'),
+        url('HexaframeCF-ExtraBoldOblique.ttf') format('truetype');
+    font-weight: 800;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Heavy Oblique';
+    src: url('HexaframeCF-HeavyOblique.eot');
+    src: local('Hexaframe CF Heavy Oblique'), local('HexaframeCF-HeavyOblique'),
+        url('HexaframeCF-HeavyOblique.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-HeavyOblique.woff2') format('woff2'),
+        url('HexaframeCF-HeavyOblique.woff') format('woff'),
+        url('HexaframeCF-HeavyOblique.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF';
+    src: url('HexaframeCF-Heavy.eot');
+    src: local('Hexaframe CF Heavy'), local('HexaframeCF-Heavy'),
+        url('HexaframeCF-Heavy.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-Heavy.woff2') format('woff2'),
+        url('HexaframeCF-Heavy.woff') format('woff'),
+        url('HexaframeCF-Heavy.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Extra Light Oblique';
+    src: url('HexaframeCF-ExtraLightOblique.eot');
+    src: local('Hexaframe CF Extra Light Oblique'), local('HexaframeCF-ExtraLightOblique'),
+        url('HexaframeCF-ExtraLightOblique.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-ExtraLightOblique.woff2') format('woff2'),
+        url('HexaframeCF-ExtraLightOblique.woff') format('woff'),
+        url('HexaframeCF-ExtraLightOblique.ttf') format('truetype');
+    font-weight: 200;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF Thin Oblique';
+    src: url('HexaframeCF-ThinOblique.eot');
+    src: local('Hexaframe CF Thin Oblique'), local('HexaframeCF-ThinOblique'),
+        url('HexaframeCF-ThinOblique.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-ThinOblique.woff2') format('woff2'),
+        url('HexaframeCF-ThinOblique.woff') format('woff'),
+        url('HexaframeCF-ThinOblique.ttf') format('truetype');
+    font-weight: 100;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF';
+    src: url('HexaframeCF-Regular.eot');
+    src: local('Hexaframe CF'), local('HexaframeCF-Regular'),
+        url('HexaframeCF-Regular.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-Regular.woff2') format('woff2'),
+        url('HexaframeCF-Regular.woff') format('woff'),
+        url('HexaframeCF-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hexaframe CF';
+    src: url('HexaframeCF-Thin.eot');
+    src: local('Hexaframe CF Thin'), local('HexaframeCF-Thin'),
+        url('HexaframeCF-Thin.eot?#iefix') format('embedded-opentype'),
+        url('HexaframeCF-Thin.woff2') format('woff2'),
+        url('HexaframeCF-Thin.woff') format('woff'),
+        url('HexaframeCF-Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+}
+
