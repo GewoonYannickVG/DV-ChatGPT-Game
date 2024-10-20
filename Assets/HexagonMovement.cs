@@ -40,6 +40,8 @@ public class HexagonMovement : MonoBehaviour
     private bool isMoving = false; // Flag to check if the player is moving
     private float rollVolume = 1f; // Volume level for rolling audio
     private float fadeDuration = 0.25f; // Fade duration for audio (slightly shorter)
+    private float movementCheckDelay = 0.5f; // Delay time for movement check
+    private float lastMovementCheckTime = 0f; // Last time the movement was checked
 
     // Reference to VolumeController
     private VolumeController volumeController;
@@ -143,25 +145,39 @@ public class HexagonMovement : MonoBehaviour
         {
             float distanceMoved = Vector2.Distance(previousPosition, rb.position);
 
-            // Check if movement has occurred
-            if (distanceMoved > 0.01f)
+            // Check if movement has occurred with a delay
+            if (Time.time - lastMovementCheckTime > movementCheckDelay)
             {
-                // Only play movement audio once when the player starts moving
-                if (!isMoving)
-                {
-                    isMoving = true;
-                    PlayMoveAudio(); // Movement audio (plays once when moving starts)
-                }
+                lastMovementCheckTime = Time.time;
 
-                // Manage rolling audio
-                if (!rollAudioSource.isPlaying)
+                if (distanceMoved > 0.01f)
                 {
-                    PlayRollingAudio(); // Start rolling audio when moving
+                    // Only play movement audio once when the player starts moving
+                    if (!isMoving)
+                    {
+                        isMoving = true;
+                        PlayMoveAudio(); // Movement audio (plays once when moving starts)
+                    }
+
+                    // Manage rolling audio
+                    if (!rollAudioSource.isPlaying)
+                    {
+                        PlayRollingAudio(); // Start rolling audio when moving
+                    }
+                    else
+                    {
+                        // Ensure rolling audio is at the correct volume
+                        SetRollingAudioVolume(rollVolume);
+                    }
                 }
                 else
                 {
-                    // Ensure rolling audio is at the correct volume
-                    SetRollingAudioVolume(rollVolume);
+                    // If the player stops moving, set rolling audio volume to 0
+                    if (isMoving)
+                    {
+                        isMoving = false;
+                        SetRollingAudioVolume(0f); // Stop rolling audio smoothly
+                    }
                 }
             }
         }
