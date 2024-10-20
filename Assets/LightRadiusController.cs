@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using System.Collections; // Ensure this is included for IEnumerator
 
 public class LightRadiusController : MonoBehaviour
 {
@@ -10,7 +11,9 @@ public class LightRadiusController : MonoBehaviour
     [SerializeField] private float radiusChangeSpeed = 2f;        // Speed of radius change
 
     [Header("Intensity Settings")]
-    [SerializeField] private float normalIntensity = 1f;          // Normal intensity of the light
+    [SerializeField] private float initialIntensity = 0f;         // Initial intensity of the light (editable in Unity Editor)
+    [SerializeField] private float normalIntensity = 1f;          // Normal intensity of the light (editable in Unity Editor)
+    [SerializeField] private float transitionDuration = 2f;       // Duration for the intensity transition (editable in Unity Editor)
     [SerializeField] private float reducedIntensity = 0.5f;       // Reduced intensity when Shift is held down
     [SerializeField] private float intensityChangeSpeedHold = 2f; // Speed of intensity change when holding Shift
     [SerializeField] private float intensityChangeSpeedRelease = 2f; // Speed of intensity change when releasing Shift
@@ -24,9 +27,27 @@ public class LightRadiusController : MonoBehaviour
         if (light2D != null)
         {
             targetRadius = light2D.pointLightOuterRadius;
-            targetIntensity = normalIntensity;
-            light2D.intensity = targetIntensity;
+            targetIntensity = normalIntensity;  // Set targetIntensity initially to normalIntensity
+            light2D.intensity = initialIntensity; // Set the initial intensity from the serialized field
+            StartCoroutine(FadeInLight(transitionDuration)); // Use transitionDuration for the fade-in
         }
+    }
+
+    private IEnumerator FadeInLight(float duration)
+    {
+        float elapsedTime = 0f;
+        float initialIntensity = light2D.intensity; // Start from the current intensity
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            // Calculate the new intensity using Lerp for a smooth transition
+            light2D.intensity = Mathf.Lerp(initialIntensity, normalIntensity, elapsedTime / duration);
+            yield return null; // Wait until the next frame
+        }
+
+        // Ensure the intensity is set to the target at the end
+        light2D.intensity = normalIntensity;
     }
 
     void Update()
@@ -54,7 +75,7 @@ public class LightRadiusController : MonoBehaviour
             light2D.pointLightOuterRadius = Mathf.Lerp(light2D.pointLightOuterRadius, targetRadius, Time.deltaTime * radiusChangeSpeed);
 
             // Check for the Shift key state to apply different intensity change speeds
-            float intensitySpeed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)
+            float intensitySpeed = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                 ? intensityChangeSpeedHold
                 : intensityChangeSpeedRelease;
 

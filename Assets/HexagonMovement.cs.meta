@@ -3,7 +3,9 @@ guid: 3f6dbd8dd66e114489f3fe9c1ea98921
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - groundCheck: {instanceID: 0}
+  - dashParticlePrefab: {fileID: 5957895023406857895, guid: 03b808c442f80da46aee136e121bbf65, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

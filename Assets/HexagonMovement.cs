@@ -1,62 +1,91 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using System.Collections; // Make sure to include this for IEnumerator
 
 public class HexagonMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [SerializeField] private float torqueAmount = 100f;         // Amount of torque to apply when moving
-    [SerializeField] private float movementForce = 5f;          // Force to apply to move the hexagon forward/backward
-    [SerializeField] private float jumpForce = 10f;             // Jump force applied as a direct velocity change
-    [SerializeField] private float doubleJumpForce = 15f;       // Extra jump force applied for the second jump
-    [SerializeField] private float dashForce = 20f;             // Force applied when dashing
-    [SerializeField] private LayerMask groundLayer;             // Layer to detect ground collisions
-    [SerializeField] private LayerMask obstacleLayer;           // Layer for detecting obstacles before dashing
-    [SerializeField] private Transform groundCheck;             // Reference to the GroundCheck object
-    [SerializeField] private float groundCheckRadius = 0.1f;    // Radius of the ground check circle
-    [SerializeField] private float dashRayDistance = 1f;        // Distance for dash obstacle detection
+    [SerializeField] private float torqueAmount = 100f;
+    [SerializeField] private float movementForce = 5f;
+    [SerializeField] private float jumpForce = 10f;
+    [SerializeField] private float doubleJumpForce = 15f;
+    [SerializeField] private float dashForce = 300f;
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private LayerMask obstacleLayer;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundCheckRadius = 0.1f;
+    [SerializeField] private float dashRayDistance = 1f;
 
-    // Add a reference for the particle system prefab
-    [SerializeField] private GameObject dashParticlePrefab;     // Prefab for dash particle effect
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource moveAudioSource;
+    [SerializeField] private AudioClip movementClip;
+    [SerializeField] private AudioSource jumpAudioSource;
+    [SerializeField] private AudioClip jumpClip;
+    [SerializeField] private AudioSource dashAudioSource;
+    [SerializeField] private AudioClip dashClip;
+    [SerializeField] private AudioSource rollAudioSource;
+    [SerializeField] private AudioClip rollClip;
+    [SerializeField] private GameObject dashParticlePrefab;
 
     [Header("Jump Settings")]
-    [SerializeField] private int maxJumpCount = 2;              // Maximum number of jumps (1 jump + 1 double jump)
+    [SerializeField] private int maxJumpCount = 2;
 
-    private Rigidbody2D rb;                                     // Reference to the Rigidbody2D component
-    private bool isGrounded = false;                            // Track if the hexagon is on the ground
-    private int jumpCount = 0;                                  // Counter for jumps (1 for normal, +1 for each double jump)
-    private bool canDash = true;                                // Flag to track if dashing is allowed
-    private bool dashTriggered = false;                         // Flag to check if dash input was triggered
+    private Rigidbody2D rb;
+    private bool isGrounded = false;
+    private int jumpCount = 0;
+    private bool canDash = true;
+    private bool dashTriggered = false;
+
+    private Vector2 previousPosition;
+    private bool isMoving = false; // Flag to check if the player is moving
+    private float rollVolume = 1f; // Volume level for rolling audio
+    private float fadeDuration = 0.25f; // Fade duration for audio (slightly shorter)
 
     void Start()
     {
-        // Get the Rigidbody2D component attached to the hexagon
         rb = GetComponent<Rigidbody2D>();
-
-        // Set gravity scale to desired value
         rb.gravityScale = 4.25f;
-
-        // Enable continuous collision detection to prevent tunneling
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+        previousPosition = rb.position;
+
+        // Initialize audio sources
+        if (moveAudioSource != null)
+        {
+            moveAudioSource.clip = movementClip;
+            moveAudioSource.loop = true; // Loop movement audio
+            moveAudioSource.volume = 0f; // Start volume at 0
+        }
+
+        if (jumpAudioSource != null)
+        {
+            jumpAudioSource.clip = jumpClip; // Set jump audio clip
+        }
+
+        if (dashAudioSource != null)
+        {
+            dashAudioSource.clip = dashClip; // Set dash audio clip
+        }
+
+        if (rollAudioSource != null)
+        {
+            rollAudioSource.clip = rollClip; // Set roll audio clip
+        }
     }
 
     void Update()
     {
-        // Handle ground check
-        GroundCheck();
-
-        // Check for player input to apply torque (for rolling effect)
         HandleRolling();
-
-        // Check for jump input
         HandleJump();
-
-        // Check if dash input is triggered (A + W or D + W)
         HandleDashInput();
+
+        previousPosition = rb.position;
     }
 
     void FixedUpdate()
     {
-        // Perform the dash if dash input was triggered and conditions are met
+        GroundCheck();
+
         if (dashTriggered && canDash && !isGrounded)
         {
             PerformDash();
@@ -65,72 +94,122 @@ public class HexagonMovement : MonoBehaviour
 
     private void GroundCheck()
     {
-        // Check if the player is grounded using a small circle at the GroundCheck position
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
         if (isGrounded)
         {
-            // Reset jump count when grounded
-            jumpCount = 0; // Reset jump count to allow jumping again
-            canDash = true; // Enable dashing again
-            dashTriggered = false; // Reset dash trigger when grounded
+            jumpCount = 0;
+            canDash = true;
+            dashTriggered = false;
         }
     }
 
     private void HandleRolling()
     {
-        // Get horizontal input
         float horizontalInput = Input.GetAxis("Horizontal");
 
-        // Apply horizontal movement
-        rb.velocity = new Vector2(horizontalInput * movementForce, rb.velocity.y); // Maintain vertical velocity
+        rb.velocity = new Vector2(horizontalInput * movementForce, rb.velocity.y);
 
-        if (Input.GetKey(KeyCode.A))
+        float speedFactor = Mathf.Abs(rb.velocity.x);
+        float torqueMultiplier = 10f;
+
+        if (horizontalInput < 0)
         {
-            // Apply counter-clockwise torque to simulate rolling left
-            rb.AddTorque(torqueAmount);
+            rb.AddTorque(torqueMultiplier * torqueAmount * speedFactor * Time.fixedDeltaTime);
         }
-        else if (Input.GetKey(KeyCode.D))
+        else if (horizontalInput > 0)
         {
-            // Apply clockwise torque to simulate rolling right
-            rb.AddTorque(-torqueAmount);
+            rb.AddTorque(-torqueMultiplier * torqueAmount * speedFactor * Time.fixedDeltaTime);
         }
+
+        float maxAngularVelocity = 50f;
+        rb.angularVelocity = Mathf.Clamp(rb.angularVelocity, -maxAngularVelocity, maxAngularVelocity);
+
+        // Check if the player is moving against a wall
+        if (IsMovingAgainstWall(horizontalInput))
+        {
+            SetRollingAudioVolume(0f); // Set volume to 0 when against a wall
+            return; // Prevent further processing if stuck against wall
+        }
+
+        // Rolling logic to play sound smoothly
+        if (Mathf.Abs(horizontalInput) > 0.1f && isGrounded)
+        {
+            float distanceMoved = Vector2.Distance(previousPosition, rb.position);
+
+            // Check if movement has occurred
+            if (distanceMoved > 0.01f)
+            {
+                // Only play movement audio once when the player starts moving
+                if (!isMoving)
+                {
+                    isMoving = true;
+                    PlayMoveAudio(); // Movement audio (plays once when moving starts)
+                }
+
+                // Manage rolling audio
+                if (!rollAudioSource.isPlaying)
+                {
+                    PlayRollingAudio(); // Start rolling audio when moving
+                }
+                else
+                {
+                    // Ensure rolling audio is at the correct volume
+                    SetRollingAudioVolume(rollVolume);
+                }
+            }
+        }
+        else
+        {
+            // If the player stops moving, set rolling audio volume to 0
+            if (isMoving)
+            {
+                isMoving = false;
+                SetRollingAudioVolume(0f); // Stop rolling audio smoothly
+            }
+        }
+    }
+
+    private bool IsMovingAgainstWall(float horizontalInput)
+    {
+        // Check if moving horizontally against a wall
+        Vector2 direction = new Vector2(horizontalInput, 0);
+        RaycastHit2D hit = Physics2D.Raycast(rb.position, direction, 0.1f, obstacleLayer);
+        return hit.collider != null;
     }
 
     private void HandleJump()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (isGrounded)
+            if (isGrounded || jumpCount < maxJumpCount)
             {
-                // Normal jump
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-                jumpCount++;
-                Debug.Log("Jump performed");
+                if (isGrounded)
+                {
+                    rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                    jumpCount++;
+                }
+                else
+                {
+                    rb.velocity = new Vector2(rb.velocity.x, doubleJumpForce);
+                    jumpCount++;
+                }
+
+                PlayJumpAudio();
             }
-            else if (jumpCount < maxJumpCount) // Allow double jump based on the max jump count
-            {
-                rb.velocity = new Vector2(rb.velocity.x, doubleJumpForce);
-                jumpCount++;
-                Debug.Log("Double Jump performed");
-            }
+
+            // Stop rolling audio if jumping
+            SetRollingAudioVolume(0f);
         }
     }
 
     private void HandleDashInput()
     {
-        // Check for dash input: pressing W while holding left (A) or right (D) and in the air
         if (Input.GetKey(KeyCode.W) && !isGrounded)
         {
-            if (Input.GetKey(KeyCode.A)) // Dash left
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
             {
                 dashTriggered = true;
-                Debug.Log("Dash input detected: Left");
-            }
-            else if (Input.GetKey(KeyCode.D)) // Dash right
-            {
-                dashTriggered = true;
-                Debug.Log("Dash input detected: Right");
             }
         }
     }
@@ -139,129 +218,139 @@ public class HexagonMovement : MonoBehaviour
     {
         float dashDirection = Input.GetKey(KeyCode.A) ? -1 : 1;
 
-        // Check for obstacles in the dash direction using a raycast
         Vector2 rayOrigin = rb.position;
-        Vector2 rayDirection = new Vector2(dashDirection, 0);
-        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, rayDirection, dashRayDistance, obstacleLayer);
+        Vector2 dashDirectionVector = new Vector2(dashDirection, 0);
 
-        if (hit.collider != null)
+        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, dashDirectionVector, dashRayDistance, obstacleLayer);
+
+        if (!hit)
         {
-            // Obstacle detected, do not dash
-            Debug.Log("Dash blocked by obstacle: " + hit.collider.name);
-            dashTriggered = false;
-            return;
+            rb.AddForce(dashDirectionVector * dashForce, ForceMode2D.Impulse);
+            PlayDashAudio();
+            PlayDashParticles(rb.position, dashDirection);
+            canDash = false;
         }
 
-        // No obstacle detected, perform the dash
-        rb.velocity = new Vector2(dashDirection * dashForce, rb.velocity.y);
-
-        // Capture the new position after the dash
-        Vector3 newPosition = transform.position + new Vector3(dashDirection * dashForce * Time.fixedDeltaTime, 0, 0);
-
-        // Play the dash particle effect at the new position
-        PlayDashParticles(newPosition, dashDirection);
-
-        canDash = false; // Disable further dashes until grounded again
-        dashTriggered = false; // Reset dash trigger after performing dash
-        Debug.Log("Dash performed!");
+        StartCoroutine(ShakeCamera());
     }
 
-    private void PlayDashParticles(Vector3 position, float dashDirection)
+    // Rolling Audio Logic
+    private void PlayRollingAudio()
     {
-        if (dashParticlePrefab != null)
+        if (rollAudioSource != null && rollClip != null)
         {
-            // Instantiate the particle effect at the new position after the dash
-            GameObject particles = Instantiate(dashParticlePrefab, position, Quaternion.identity);
+            rollAudioSource.clip = rollClip;
+            rollAudioSource.loop = true; // Ensure rolling audio is looped
+            rollAudioSource.volume = 0f; // Start volume at 0 for fade-in
+            rollAudioSource.Play();
+            StartCoroutine(FadeInAudio(rollAudioSource, fadeDuration, rollVolume * GetCurrentVolume())); // Fade in over fadeDuration
 
-            // Set the rotation based on the dash direction
-            if (dashDirection == 1) // Dash right
-            {
-                particles.transform.rotation = Quaternion.Euler(0, -90, 0); // Facing right with Y rotation of -90
-            }
-            else if (dashDirection == -1) // Dash left
-            {
-                particles.transform.rotation = Quaternion.Euler(0, 90, 0); // Facing left with Y rotation of 90
-            }
-
-            // Start the fade coroutine
-            StartCoroutine(FadeOutParticles(particles));
+            // Set the volume right after starting the audio to ensure it respects the global volume
+            rollAudioSource.volume = rollVolume * GetCurrentVolume();
         }
     }
 
-    private IEnumerator FadeOutParticles(GameObject particles)
+
+    private void SetRollingAudioVolume(float targetVolume)
     {
-        // Get the ParticleSystem component
-        ParticleSystem ps = particles.GetComponent<ParticleSystem>();
-        var main = ps.main;
-
-        // Enable the particle system
-        ps.Play();
-
-        // Fade in
-        float fadeDuration = 0.5f; // Adjust duration for fade in
-        float elapsedTime = 0f;
-
-        // Fade in particles
-        while (elapsedTime < fadeDuration)
+        if (rollAudioSource != null && rollAudioSource.isPlaying)
         {
-            float alpha = elapsedTime / fadeDuration;
-            main.startLifetime = Mathf.Lerp(0, 1, alpha); // Fade in
-            elapsedTime += Time.deltaTime;
+            if (targetVolume == 0f)
+            {
+                StartCoroutine(FadeOutAudio(rollAudioSource, fadeDuration)); // Fade out over fadeDuration
+            }
+            else
+            {
+                // Set volume based on global settings whenever it’s being set
+                rollAudioSource.volume = targetVolume * GetCurrentVolume();
+            }
+        }
+    }
+
+
+    // Movement Audio Logic
+    private void PlayMoveAudio()
+    {
+        if (moveAudioSource != null && movementClip != null && !moveAudioSource.isPlaying)
+        {
+            moveAudioSource.clip = movementClip;
+            moveAudioSource.loop = true; // Loop movement audio
+            moveAudioSource.volume = 0f; // Start volume at 0 for fade-in
+            moveAudioSource.Play();
+            StartCoroutine(FadeInAudio(moveAudioSource, fadeDuration, 1f)); // Fade in over fadeDuration
+        }
+    }
+
+    private void StopMoveAudio()
+    {
+        if (moveAudioSource != null && moveAudioSource.isPlaying)
+        {
+            StartCoroutine(FadeOutAudio(moveAudioSource, fadeDuration)); // Fade out over fadeDuration
+        }
+    }
+
+    // Fade in/out coroutine
+    private IEnumerator FadeInAudio(AudioSource audioSource, float duration, float targetVolume)
+    {
+        float startVolume = audioSource.volume;
+        audioSource.volume = 0f;
+
+        while (audioSource.volume < targetVolume)
+        {
+            audioSource.volume += startVolume * Time.deltaTime / duration;
             yield return null;
         }
 
-        // Allow the particles to play for a short while
-        yield return new WaitForSeconds(0.5f);
+        audioSource.volume = targetVolume; // Ensure final volume is set
+    }
 
-        // Fade out
-        elapsedTime = 0f;
+    private IEnumerator FadeOutAudio(AudioSource audioSource, float duration)
+    {
+        float startVolume = audioSource.volume;
 
-        // Fade out particles
-        while (elapsedTime < fadeDuration)
+        while (audioSource.volume > 0f)
         {
-            float alpha = 1 - (elapsedTime / fadeDuration);
-            main.startLifetime = Mathf.Lerp(1, 0, alpha); // Fade out
-            elapsedTime += Time.deltaTime;
+            audioSource.volume -= startVolume * Time.deltaTime / duration;
             yield return null;
         }
 
-        // Destroy the particle object after fading out
-        Destroy(particles);
+        audioSource.Stop();
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void PlayJumpAudio()
     {
-        // Check if the hexagon is colliding with the ground layer
-        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        if (jumpAudioSource != null && jumpClip != null)
         {
-            isGrounded = true;
-            jumpCount = 0; // Reset jump count when touching the ground
-            Debug.Log("Grounded");
+            jumpAudioSource.PlayOneShot(jumpClip);
         }
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
+    private void PlayDashAudio()
     {
-        // Check if the hexagon has left the ground layer
-        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        if (dashAudioSource != null && dashClip != null)
         {
-            isGrounded = false;
-            Debug.Log("Not Grounded");
+            dashAudioSource.PlayOneShot(dashClip);
         }
     }
 
-    private void OnDrawGizmos()
+    private void PlayDashParticles(Vector2 position, float dashDirection)
     {
-        // Check if rb is assigned before accessing its position
-        if (rb != null)
-        {
-            // Draw ground check gizmo for debugging
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+        GameObject dashParticles = Instantiate(dashParticlePrefab, position, Quaternion.identity);
+        dashParticles.transform.localScale = new Vector3(dashDirection > 0 ? 1 : -1, 1, 1);
+        Destroy(dashParticles, 1f); // Destroy particles after 1 second
+    }
 
-            // Draw the raycast for dash obstacle detection
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(rb.position, rb.position + new Vector2(dashRayDistance * (Input.GetKey(KeyCode.A) ? -1 : 1), 0));
-        }
+    private IEnumerator ShakeCamera()
+    {
+        // Camera shake logic here
+        yield return new WaitForSeconds(0.2f);
+    }
+
+    // Method to get current audio volume settings (can be customized)
+    private float GetCurrentVolume()
+    {
+        // Replace this with your global audio volume/mute setting retrieval
+        // For example:
+        return PlayerPrefs.GetFloat("MasterVolume", 1f); // Assume a value between 0 (mute) and 1 (full volume)
     }
 }
