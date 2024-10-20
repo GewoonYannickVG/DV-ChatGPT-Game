@@ -5,6 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 public class DiamondController : MonoBehaviour
 {
+    public Transform hexagonTransform;    // Reference to the hexagon's transform
     public Transform diamondLightObject;  // Reference to the Light2D object inside the diamond (main light)
     public Transform spotLightObject;     // Reference to the Light2D SpotLight object
     public float floatSpeed = 1f;         // Speed of floating animation
@@ -14,6 +15,7 @@ public class DiamondController : MonoBehaviour
     public float proximityScale = 1.2f;   // Scale increase when player is near
     public float flickerIntensityChange = 0.5f;  // How much the intensity changes when flickering
     public float spotlightFlickerIntensityChange = 0.1f; // Smaller intensity change for spotlight
+    public float maxScaleDistance = 5f;   // Maximum distance for scaling effect
 
     private Light2D diamondLight;         // Reference to the Light2D component (main light)
     private Light2D spotLight;            // Reference to the Light2D component (spotlight)
@@ -26,7 +28,6 @@ public class DiamondController : MonoBehaviour
     private float initialRadiusInner = 0f;        // Default inner radius for the spotlight
     private float initialRadiusOuter = 12f;       // Default outer radius for the spotlight
     private float initialFalloffStrength = 0.767f; // Default falloff strength for the spotlight
-    private bool playerNearby = false;    // Is the player near?
 
     void Start()
     {
@@ -71,8 +72,18 @@ public class DiamondController : MonoBehaviour
         float newY = initialPosition.y + Mathf.Sin(Time.time * floatSpeed) * floatHeight;
         transform.position = new Vector3(initialPosition.x, newY, initialPosition.z);
 
+        if (hexagonTransform != null)
+        {
+            // Calculate the distance between the diamond and the hexagon
+            float distance = Vector3.Distance(transform.position, hexagonTransform.position);
+            // Calculate the scale factor based on the distance
+            float scale = Mathf.Clamp(1f + (proximityScale - 1f) * (1f - (distance / maxScaleDistance)), 1f, proximityScale);
+            // Apply the scale to the diamond
+            transform.localScale = initialScale * scale;
+        }
+
         // Light flickering effect for diamond light
-        if (playerNearby)
+        if (hexagonTransform != null && Vector3.Distance(transform.position, hexagonTransform.position) < maxScaleDistance)
         {
             // Flicker faster and turn red when player is nearby (diamond light)
             diamondLight.intensity = initialIntensity + Random.Range(-flickerIntensityChange, flickerIntensityChange);
@@ -93,53 +104,6 @@ public class DiamondController : MonoBehaviour
             spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange / 2, spotlightFlickerIntensityChange / 2);
             spotLight.color = Color.Lerp(spotLight.color, initialSpotColor, Time.deltaTime * 2); // Smooth transition back to white
             spotLight.pointLightOuterRadius = Mathf.Lerp(spotLight.pointLightOuterRadius, initialRadiusOuter, Time.deltaTime * 2); // Restore original radius
-        }
-    }
-
-    // Trigger when player enters the diamond's proximity
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Player")) // Make sure the player has the "Player" tag
-        {
-            playerNearby = true;
-            StartCoroutine(GrowDiamond());
-        }
-    }
-
-    // Trigger when player leaves the diamond's proximity
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerNearby = false;
-
-            // Check if the object is active before starting the coroutine
-            if (gameObject.activeInHierarchy)
-            {
-                StartCoroutine(ShrinkDiamond());
-            }
-        }
-    }
-
-
-    // Coroutine to grow the diamond smoothly
-    IEnumerator GrowDiamond()
-    {
-        Vector3 targetScale = initialScale * proximityScale;
-        while (transform.localScale != targetScale && playerNearby)
-        {
-            transform.localScale = Vector3.Lerp(transform.localScale, targetScale, Time.deltaTime * 2);
-            yield return null;
-        }
-    }
-
-    // Coroutine to shrink the diamond smoothly
-    IEnumerator ShrinkDiamond()
-    {
-        while (transform.localScale != initialScale && !playerNearby)
-        {
-            transform.localScale = Vector3.Lerp(transform.localScale, initialScale, Time.deltaTime * 2);
-            yield return null;
         }
     }
 }

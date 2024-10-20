@@ -694,8 +694,8 @@ MonoBehaviour:
   m_ShadowVolumeIntensityEnabled: 0
   m_ShadowVolumeIntensity: 0.75
   m_LocalBounds:
-    m_Center: {x: 0.0054500103, y: 0.00059998035, z: 0}
-    m_Extent: {x: 1.18495, y: 0.9346, z: 0}
+    m_Center: {x: 0.0031999946, y: 0.005400002, z: 0}
+    m_Extent: {x: 1.1861999, y: 0.9417, z: 0}
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -921,6 +921,7 @@ MonoBehaviour:
   offscreenPosition: {x: 0, y: 600}
   onscreenPosition: {x: 0, y: 300}
   playerAudioSources: []
+  holdThreshold: 0.5
 --- !u!82 &169568135
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1715,15 +1716,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfdf70289c674c54a86cc6733ef68917, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hexagonTransform: {fileID: 1054622145}
   diamondLightObject: {fileID: 116530901}
   spotLightObject: {fileID: 2005764763}
-  floatSpeed: 1.25
-  floatHeight: 0.2
-  flickerSpeed: 0.1
+  floatSpeed: 1.5
+  floatHeight: 0.15
+  flickerSpeed: 0.15
   proximityFlickerSpeed: 0.05
-  proximityScale: 1.2
+  proximityScale: 1.75
   flickerIntensityChange: 0.5
   spotlightFlickerIntensityChange: 0.1
+  maxScaleDistance: 8
 --- !u!212 &592882019
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1764,7 +1767,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_Sprite: {fileID: 3625043607559282579, guid: 19fb86013d8c24d6cb8410c0aadf30fa, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1785,7 +1788,7 @@ Transform:
   m_GameObject: {fileID: 592882017}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 48, y: 28, z: 0}
+  m_LocalPosition: {x: 48, y: 27.75, z: -1.5}
   m_LocalScale: {x: 0.75, y: 5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1827,7 +1830,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 2
+  m_Radius: 3.5
 --- !u!1 &608208759
 GameObject:
   m_ObjectHideFlags: 0
@@ -3260,7 +3263,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: -4870005612450413265, guid: 308ca509d94ab964f8a3ee43d5009538, type: 2}
   m_audioClip: {fileID: 8300000, guid: 72b29c538e335214e88e6ce30d07835f, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0

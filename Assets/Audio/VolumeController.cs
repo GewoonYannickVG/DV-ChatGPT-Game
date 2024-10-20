@@ -35,6 +35,16 @@ public class VolumeController : MonoBehaviour
     // Property to get the mute state
     public bool IsMuted { get { return isMuted; } }
 
+    [Header("Volume Key Hold Settings")]
+    public float holdThreshold = 1.0f; // Adjust hold threshold in the Unity Editor
+
+    private float increaseHoldTime = 0f;
+    private float decreaseHoldTime = 0f;
+    private bool isIncreasing = false;
+    private bool isDecreasing = false;
+    private Coroutine increaseCoroutine;
+    private Coroutine decreaseCoroutine;
+
     private void Awake()
     {
         // Implementing Singleton Pattern
@@ -64,18 +74,72 @@ public class VolumeController : MonoBehaviour
 
     void Update()
     {
-        // Check key inputs for volume control
+        // Key down handling
         if (Input.GetKeyDown(KeyCode.Equals) || Input.GetKeyDown(KeyCode.Plus))
         {
-            IncreaseVolume();
+            if (increaseCoroutine != null) StopCoroutine(increaseCoroutine);
+            increaseCoroutine = StartCoroutine(HandleIncreaseVolume());
         }
         if (Input.GetKeyDown(KeyCode.Minus))
         {
-            DecreaseVolume();
+            if (decreaseCoroutine != null) StopCoroutine(decreaseCoroutine);
+            decreaseCoroutine = StartCoroutine(HandleDecreaseVolume());
         }
-        if (Input.GetKeyDown(KeyCode.Alpha0))
+
+        // Key up handling
+        if (Input.GetKeyUp(KeyCode.Equals) || Input.GetKeyUp(KeyCode.Plus))
         {
-            ToggleMute();
+            isIncreasing = false;
+            increaseHoldTime = 0f;
+        }
+        if (Input.GetKeyUp(KeyCode.Minus))
+        {
+            isDecreasing = false;
+            decreaseHoldTime = 0f;
+        }
+    }
+
+    // Coroutine to handle increasing volume
+    IEnumerator HandleIncreaseVolume()
+    {
+        IncreaseVolume();
+        isIncreasing = true;
+        increaseHoldTime = 0f;
+
+        while (isIncreasing)
+        {
+            increaseHoldTime += Time.deltaTime;
+            if (increaseHoldTime >= holdThreshold)
+            {
+                IncreaseVolume();
+                yield return new WaitForSeconds(0.1f); // Adjust the repeat rate as needed
+            }
+            else
+            {
+                yield return null;
+            }
+        }
+    }
+
+    // Coroutine to handle decreasing volume
+    IEnumerator HandleDecreaseVolume()
+    {
+        DecreaseVolume();
+        isDecreasing = true;
+        decreaseHoldTime = 0f;
+
+        while (isDecreasing)
+        {
+            decreaseHoldTime += Time.deltaTime;
+            if (decreaseHoldTime >= holdThreshold)
+            {
+                DecreaseVolume();
+                yield return new WaitForSeconds(0.1f); // Adjust the repeat rate as needed
+            }
+            else
+            {
+                yield return null;
+            }
         }
     }
 
