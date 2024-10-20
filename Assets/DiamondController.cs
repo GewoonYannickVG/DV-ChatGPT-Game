@@ -16,7 +16,6 @@ public class DiamondController : MonoBehaviour
     public float flickerIntensityChange = 0.5f;  // How much the intensity changes when flickering
     public float spotlightFlickerIntensityChange = 0.1f; // Smaller intensity change for spotlight
     public float maxScaleDistance = 5f;   // Maximum distance for scaling effect
-    public HexagonMovement hexagonMovement; // Reference to the player's movement script
 
     private Light2D diamondLight;         // Reference to the Light2D component (main light)
     private Light2D spotLight;            // Reference to the Light2D component (spotlight)
@@ -66,12 +65,6 @@ public class DiamondController : MonoBehaviour
         spotLight.pointLightInnerRadius = initialRadiusInner;
         spotLight.pointLightOuterRadius = initialRadiusOuter;
         spotLight.falloffIntensity = initialFalloffStrength;
-
-        // Ensure hexagonMovement is assigned
-        if (hexagonMovement == null)
-        {
-            hexagonMovement = GameObject.FindWithTag("Player").GetComponent<HexagonMovement>();
-        }
     }
 
     void Update()
@@ -101,9 +94,6 @@ public class DiamondController : MonoBehaviour
             spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange, spotlightFlickerIntensityChange);
             spotLight.color = Color.Lerp(spotLight.color, Color.red, Time.deltaTime * 2);
             spotLight.pointLightOuterRadius = Mathf.Lerp(spotLight.pointLightOuterRadius, initialRadiusOuter * 1.1f, Time.deltaTime * 2); // Slightly increase radius
-
-            // Dim the player's light and override control
-            hexagonMovement.SetPlayerLightIntensity(0.5f, true);
         }
         else
         {
@@ -115,9 +105,6 @@ public class DiamondController : MonoBehaviour
             spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange / 2, spotlightFlickerIntensityChange / 2);
             spotLight.color = Color.Lerp(spotLight.color, initialSpotColor, Time.deltaTime * 2); // Smooth transition back to white
             spotLight.pointLightOuterRadius = Mathf.Lerp(spotLight.pointLightOuterRadius, initialRadiusOuter, Time.deltaTime * 2); // Restore original radius
-
-            // Restore player's light control
-            hexagonMovement.RestorePlayerLightControl();
         }
     }
 

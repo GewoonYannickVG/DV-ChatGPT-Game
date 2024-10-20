@@ -1,8 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
-using UnityEngine.Rendering.Universal;
 
 public class HexagonMovement : MonoBehaviour
 {
@@ -32,24 +30,17 @@ public class HexagonMovement : MonoBehaviour
     [Header("Jump Settings")]
     [SerializeField] private int maxJumpCount = 2;
 
-    [Header("Light Settings")]
-    [SerializeField] private Light2D playerLight;
-    [SerializeField] private float normalLightIntensity = 1f;
-    [SerializeField] private float dimLightIntensity = 0.5f;  // This field is now used
-
     private Rigidbody2D rb;
     private bool isGrounded = false;
     private int jumpCount = 0;
     private bool canDash = true;
     private bool dashTriggered = false;
-    private bool overrideLightControl = false;
 
     private Vector2 previousPosition;
+    private float previousYPosition;
     private bool isMoving = false; // Flag to check if the player is moving
     private float rollVolume = 1f; // Volume level for rolling audio
     private float fadeDuration = 0.25f; // Fade duration for audio (slightly shorter)
-    private float movementCheckDelay = 0.5f; // Delay time for movement check
-    private float lastMovementCheckTime = 0f; // Last time the movement was checked
 
     // Reference to VolumeController
     private VolumeController volumeController;
@@ -61,6 +52,7 @@ public class HexagonMovement : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         previousPosition = rb.position;
+        previousYPosition = rb.position.y;
 
         // Initialize audio sources
         if (moveAudioSource != null)
@@ -94,11 +86,6 @@ public class HexagonMovement : MonoBehaviour
         HandleRolling();
         HandleJump();
         HandleDashInput();
-
-        if (!overrideLightControl)
-        {
-            HandleLightControl();
-        }
 
         previousPosition = rb.position;
     }
@@ -154,43 +141,32 @@ public class HexagonMovement : MonoBehaviour
         }
 
         // Rolling logic to play sound smoothly
-        if (Mathf.Abs(horizontalInput) > 0.1f && isGrounded)
+        float deltaX = Mathf.Abs(rb.position.x - previousPosition.x);
+        float deltaY = Mathf.Abs(rb.position.y - previousYPosition);
+
+        if (Mathf.Abs(horizontalInput) > 0.1f && isGrounded && (deltaX > 0.001f || deltaY > 0.001f))
         {
             float distanceMoved = Vector2.Distance(previousPosition, rb.position);
 
-            // Check if movement has occurred with a delay
-            if (Time.time - lastMovementCheckTime > movementCheckDelay)
+            // Check if movement has occurred
+            if (distanceMoved > 0.01f)
             {
-                lastMovementCheckTime = Time.time;
-
-                if (distanceMoved > 0.01f)
+                // Only play movement audio once when the player starts moving
+                if (!isMoving)
                 {
-                    // Only play movement audio once when the player starts moving
-                    if (!isMoving)
-                    {
-                        isMoving = true;
-                        PlayMoveAudio(); // Movement audio (plays once when moving starts)
-                    }
+                    isMoving = true;
+                    PlayMoveAudio(); // Movement audio (plays once when moving starts)
+                }
 
-                    // Manage rolling audio
-                    if (!rollAudioSource.isPlaying)
-                    {
-                        PlayRollingAudio(); // Start rolling audio when moving
-                    }
-                    else
-                    {
-                        // Ensure rolling audio is at the correct volume
-                        SetRollingAudioVolume(rollVolume);
-                    }
+                // Manage rolling audio
+                if (!rollAudioSource.isPlaying)
+                {
+                    PlayRollingAudio(); // Start rolling audio when moving
                 }
                 else
                 {
-                    // If the player stops moving, set rolling audio volume to 0
-                    if (isMoving)
-                    {
-                        isMoving = false;
-                        SetRollingAudioVolume(0f); // Stop rolling audio smoothly
-                    }
+                    // Ensure rolling audio is at the correct volume
+                    SetRollingAudioVolume(rollVolume);
                 }
             }
         }
@@ -203,6 +179,14 @@ public class HexagonMovement : MonoBehaviour
                 SetRollingAudioVolume(0f); // Stop rolling audio smoothly
             }
         }
+
+        // New logic to stop rolling audio if the position is below threshold
+        if (deltaX < 0.001f && deltaY < 0.001f)
+        {
+            SetRollingAudioVolume(0f); // Stop rolling audio if below threshold
+        }
+
+        previousYPosition = rb.position.y;
     }
 
     private bool IsMovingAgainstWall(float horizontalInput)
@@ -272,29 +256,6 @@ public class HexagonMovement : MonoBehaviour
         }
 
         StartCoroutine(ShakeCamera());
-    }
-
-    private void HandleLightControl()
-    {
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-        {
-            playerLight.intensity = Mathf.Lerp(playerLight.intensity, 2.0f, Time.deltaTime * 2);
-        }
-        else
-        {
-            playerLight.intensity = Mathf.Lerp(playerLight.intensity, normalLightIntensity, Time.deltaTime * 2);
-        }
-    }
-
-    public void SetPlayerLightIntensity(float intensity, bool overrideControl = false)
-    {
-        playerLight.intensity = intensity;
-        overrideLightControl = overrideControl;
-    }
-
-    public void RestorePlayerLightControl()
-    {
-        overrideLightControl = false;
     }
 
     // Rolling Audio Logic
