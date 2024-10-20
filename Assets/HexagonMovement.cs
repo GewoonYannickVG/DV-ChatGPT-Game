@@ -41,6 +41,9 @@ public class HexagonMovement : MonoBehaviour
     private float previousYPosition;
     private bool isMoving = false;
 
+    private float moveCheckTimer = 0.25f; // Reduced interval for faster detection
+    private float moveCheckInterval = 0.1f;
+
     // Reference to VolumeController
     private VolumeController volumeController;
 
@@ -97,6 +100,14 @@ public class HexagonMovement : MonoBehaviour
         {
             PerformDash();
         }
+
+        moveCheckTimer -= Time.fixedDeltaTime;
+
+        if (moveCheckTimer <= 0f)
+        {
+            moveCheckTimer = moveCheckInterval;
+            CheckMovement();
+        }
     }
 
     private void GroundCheck()
@@ -137,30 +148,31 @@ public class HexagonMovement : MonoBehaviour
             SetRollingAudioVolume(0f);
             return;
         }
+    }
 
+    private void CheckMovement()
+    {
         float deltaX = Mathf.Abs(rb.position.x - previousPosition.x);
         float deltaY = Mathf.Abs(rb.position.y - previousYPosition);
 
-        if (Mathf.Abs(horizontalInput) > 0.1f && isGrounded && (deltaX > 0.001f || deltaY > 0.001f))
+        bool isPlayerMoving = Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f;
+        bool hasMovedSignificantly = deltaX > 0.005f || deltaY > 0.005f;
+
+        if (isPlayerMoving && isGrounded && hasMovedSignificantly)
         {
-            float distanceMoved = Vector2.Distance(previousPosition, rb.position);
-
-            if (distanceMoved > 0.01f)
+            if (!isMoving)
             {
-                if (!isMoving)
-                {
-                    isMoving = true;
-                    PlayMoveAudio();
-                }
+                isMoving = true;
+                PlayMoveAudio();
+            }
 
-                if (!rollAudioSource.isPlaying)
-                {
-                    PlayRollingAudio();
-                }
-                else
-                {
-                    SetRollingAudioVolume(1f);
-                }
+            if (!rollAudioSource.isPlaying)
+            {
+                PlayRollingAudio();
+            }
+            else
+            {
+                SetRollingAudioVolume(1f);
             }
         }
         else
@@ -172,7 +184,7 @@ public class HexagonMovement : MonoBehaviour
             }
         }
 
-        if (deltaX < 0.001f && deltaY < 0.001f)
+        if (!hasMovedSignificantly)
         {
             SetRollingAudioVolume(0f);
         }
