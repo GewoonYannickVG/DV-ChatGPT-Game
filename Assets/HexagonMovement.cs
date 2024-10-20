@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
 public class HexagonMovement : MonoBehaviour
 {
@@ -30,11 +32,17 @@ public class HexagonMovement : MonoBehaviour
     [Header("Jump Settings")]
     [SerializeField] private int maxJumpCount = 2;
 
+    [Header("Light Settings")]
+    [SerializeField] private Light2D playerLight;
+    [SerializeField] private float normalLightIntensity = 1f;
+    [SerializeField] private float dimLightIntensity = 0.5f;  // This field is now used
+
     private Rigidbody2D rb;
     private bool isGrounded = false;
     private int jumpCount = 0;
     private bool canDash = true;
     private bool dashTriggered = false;
+    private bool overrideLightControl = false;
 
     private Vector2 previousPosition;
     private bool isMoving = false; // Flag to check if the player is moving
@@ -86,6 +94,11 @@ public class HexagonMovement : MonoBehaviour
         HandleRolling();
         HandleJump();
         HandleDashInput();
+
+        if (!overrideLightControl)
+        {
+            HandleLightControl();
+        }
 
         previousPosition = rb.position;
     }
@@ -259,6 +272,29 @@ public class HexagonMovement : MonoBehaviour
         }
 
         StartCoroutine(ShakeCamera());
+    }
+
+    private void HandleLightControl()
+    {
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            playerLight.intensity = Mathf.Lerp(playerLight.intensity, 2.0f, Time.deltaTime * 2);
+        }
+        else
+        {
+            playerLight.intensity = Mathf.Lerp(playerLight.intensity, normalLightIntensity, Time.deltaTime * 2);
+        }
+    }
+
+    public void SetPlayerLightIntensity(float intensity, bool overrideControl = false)
+    {
+        playerLight.intensity = intensity;
+        overrideLightControl = overrideControl;
+    }
+
+    public void RestorePlayerLightControl()
+    {
+        overrideLightControl = false;
     }
 
     // Rolling Audio Logic

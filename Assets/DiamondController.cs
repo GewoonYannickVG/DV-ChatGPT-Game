@@ -16,6 +16,7 @@ public class DiamondController : MonoBehaviour
     public float flickerIntensityChange = 0.5f;  // How much the intensity changes when flickering
     public float spotlightFlickerIntensityChange = 0.1f; // Smaller intensity change for spotlight
     public float maxScaleDistance = 5f;   // Maximum distance for scaling effect
+    public HexagonMovement hexagonMovement; // Reference to the player's movement script
 
     private Light2D diamondLight;         // Reference to the Light2D component (main light)
     private Light2D spotLight;            // Reference to the Light2D component (spotlight)
@@ -28,6 +29,7 @@ public class DiamondController : MonoBehaviour
     private float initialRadiusInner = 0f;        // Default inner radius for the spotlight
     private float initialRadiusOuter = 12f;       // Default outer radius for the spotlight
     private float initialFalloffStrength = 0.767f; // Default falloff strength for the spotlight
+    private bool playerNearby = false;    // Track if the player is near
 
     void Start()
     {
@@ -64,6 +66,12 @@ public class DiamondController : MonoBehaviour
         spotLight.pointLightInnerRadius = initialRadiusInner;
         spotLight.pointLightOuterRadius = initialRadiusOuter;
         spotLight.falloffIntensity = initialFalloffStrength;
+
+        // Ensure hexagonMovement is assigned
+        if (hexagonMovement == null)
+        {
+            hexagonMovement = GameObject.FindWithTag("Player").GetComponent<HexagonMovement>();
+        }
     }
 
     void Update()
@@ -83,7 +91,7 @@ public class DiamondController : MonoBehaviour
         }
 
         // Light flickering effect for diamond light
-        if (hexagonTransform != null && Vector3.Distance(transform.position, hexagonTransform.position) < maxScaleDistance)
+        if (playerNearby)
         {
             // Flicker faster and turn red when player is nearby (diamond light)
             diamondLight.intensity = initialIntensity + Random.Range(-flickerIntensityChange, flickerIntensityChange);
@@ -93,6 +101,9 @@ public class DiamondController : MonoBehaviour
             spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange, spotlightFlickerIntensityChange);
             spotLight.color = Color.Lerp(spotLight.color, Color.red, Time.deltaTime * 2);
             spotLight.pointLightOuterRadius = Mathf.Lerp(spotLight.pointLightOuterRadius, initialRadiusOuter * 1.1f, Time.deltaTime * 2); // Slightly increase radius
+
+            // Dim the player's light and override control
+            hexagonMovement.SetPlayerLightIntensity(0.5f, true);
         }
         else
         {
@@ -104,6 +115,27 @@ public class DiamondController : MonoBehaviour
             spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange / 2, spotlightFlickerIntensityChange / 2);
             spotLight.color = Color.Lerp(spotLight.color, initialSpotColor, Time.deltaTime * 2); // Smooth transition back to white
             spotLight.pointLightOuterRadius = Mathf.Lerp(spotLight.pointLightOuterRadius, initialRadiusOuter, Time.deltaTime * 2); // Restore original radius
+
+            // Restore player's light control
+            hexagonMovement.RestorePlayerLightControl();
+        }
+    }
+
+    // Trigger when player enters the diamond's proximity
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player")) // Make sure the player has the "Player" tag
+        {
+            playerNearby = true;
+        }
+    }
+
+    // Trigger when player leaves the diamond's proximity
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerNearby = false;
         }
     }
 }

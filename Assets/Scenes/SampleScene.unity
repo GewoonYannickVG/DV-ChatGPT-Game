@@ -694,8 +694,8 @@ MonoBehaviour:
   m_ShadowVolumeIntensityEnabled: 0
   m_ShadowVolumeIntensity: 0.75
   m_LocalBounds:
-    m_Center: {x: 0.0031999946, y: 0.005400002, z: 0}
-    m_Extent: {x: 1.1861999, y: 0.9417, z: 0}
+    m_Center: {x: -0.0018000007, y: -0.0045999885, z: 0}
+    m_Extent: {x: 1.191, y: 0.94, z: 0}
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -1723,10 +1723,10 @@ MonoBehaviour:
   floatHeight: 0.15
   flickerSpeed: 0.15
   proximityFlickerSpeed: 0.05
-  proximityScale: 1.75
+  proximityScale: 1.5
   flickerIntensityChange: 0.5
   spotlightFlickerIntensityChange: 0.1
-  maxScaleDistance: 8
+  maxScaleDistance: 6
 --- !u!212 &592882019
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1788,7 +1788,7 @@ Transform:
   m_GameObject: {fileID: 592882017}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 48, y: 27.75, z: -1.5}
+  m_LocalPosition: {x: 48, y: 27.75, z: 0}
   m_LocalScale: {x: 0.75, y: 5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1830,7 +1830,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 3.5
+  m_Radius: 3
 --- !u!1 &608208759
 GameObject:
   m_ObjectHideFlags: 0
