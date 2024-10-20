@@ -41,8 +41,8 @@ public class HexagonMovement : MonoBehaviour
     private float previousYPosition;
     private bool isMoving = false;
 
-    private float moveCheckTimer = 0.25f; // Reduced interval for faster detection
-    private float moveCheckInterval = 0.1f;
+    private float moveCheckTimer = 0.2f; // Reduced interval for faster detection
+    private float moveCheckInterval = 0.2f;
 
     // Reference to VolumeController
     private VolumeController volumeController;
@@ -155,8 +155,8 @@ public class HexagonMovement : MonoBehaviour
         float deltaX = Mathf.Abs(rb.position.x - previousPosition.x);
         float deltaY = Mathf.Abs(rb.position.y - previousYPosition);
 
-        bool isPlayerMoving = Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f;
-        bool hasMovedSignificantly = deltaX > 0.005f || deltaY > 0.005f;
+        bool isPlayerMoving = Mathf.Abs(Input.GetAxis("Horizontal")) > 0.03f;
+        bool hasMovedSignificantly = deltaX > 0.001f || deltaY > 0.003f;
 
         if (isPlayerMoving && isGrounded && hasMovedSignificantly)
         {
