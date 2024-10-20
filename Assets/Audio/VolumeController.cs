@@ -293,8 +293,8 @@ public class VolumeController : MonoBehaviour
         volumeUICanvas.interactable = true;
         volumeUICanvas.blocksRaycasts = true;
 
-        // Animate to onscreen position smoothly (without elasticity)
-        LeanTween.move(volumeImage.rectTransform, onscreenPosition, uiAnimationDuration).setEaseLinear();
+        // Animate to onscreen position smoothly (with easeInOutQuad for smoother animation)
+        LeanTween.move(volumeImage.rectTransform, onscreenPosition, uiAnimationDuration).setEase(LeanTweenType.easeInOutQuad);
 
         // Ensure to reset the UI position before showing again
         volumeImage.rectTransform.anchoredPosition = onscreenPosition;
@@ -317,8 +317,8 @@ public class VolumeController : MonoBehaviour
         float startAlpha = volumeUICanvas.alpha;  // Current alpha
         float time = 0f;
 
-        // Animate position back to offscreen
-        LeanTween.move(volumeImage.rectTransform, offscreenPosition, uiAnimationDuration).setEaseLinear();
+        // Animate position back to offscreen smoothly (with easeInOutQuad for smoother animation)
+        LeanTween.move(volumeImage.rectTransform, offscreenPosition, uiAnimationDuration).setEase(LeanTweenType.easeInOutQuad);
 
         while (time < uiAnimationDuration)
         {
