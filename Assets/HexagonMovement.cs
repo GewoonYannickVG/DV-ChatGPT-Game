@@ -27,6 +27,7 @@ public class HexagonMovement : MonoBehaviour
     [SerializeField] private AudioSource rollAudioSource;
     [SerializeField] private AudioClip rollClip;
     [SerializeField] private GameObject dashParticlePrefab;
+    [SerializeField] private float audioFadeDuration = 0.5f;
 
     [Header("Jump Settings")]
     [SerializeField] private int maxJumpCount = 2;
@@ -36,6 +37,7 @@ public class HexagonMovement : MonoBehaviour
     private int jumpCount = 0;
     private bool canDash = true;
     private bool dashTriggered = false;
+    private Coroutine fadeCoroutine;
 
     private Vector2 previousPosition;
     private float previousYPosition;
@@ -145,7 +147,7 @@ public class HexagonMovement : MonoBehaviour
 
         if (IsMovingAgainstWall(horizontalInput))
         {
-            SetRollingAudioVolume(0f);
+            FadeOutRollingAudio();
             return;
         }
     }
@@ -180,13 +182,13 @@ public class HexagonMovement : MonoBehaviour
             if (isMoving)
             {
                 isMoving = false;
-                SetRollingAudioVolume(0f);
+                FadeOutRollingAudio();
             }
         }
 
         if (!hasMovedSignificantly)
         {
-            SetRollingAudioVolume(0f);
+            FadeOutRollingAudio();
         }
 
         previousYPosition = rb.position.y;
@@ -198,7 +200,7 @@ public class HexagonMovement : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(rb.position, direction, 0.1f, obstacleLayer);
         if (hit.collider != null)
         {
-            SetRollingAudioVolume(0f);
+            FadeOutRollingAudio();
             return true;
         }
         return false;
@@ -224,7 +226,7 @@ public class HexagonMovement : MonoBehaviour
                 PlayJumpAudio();
             }
 
-            SetRollingAudioVolume(0f);
+            FadeOutRollingAudio();
         }
     }
 
@@ -265,23 +267,53 @@ public class HexagonMovement : MonoBehaviour
         {
             rollAudioSource.clip = rollClip;
             rollAudioSource.loop = true;
-            rollAudioSource.volume = 1f;
+            rollAudioSource.volume = 0f;
             rollAudioSource.Play();
+            FadeInAudio(rollAudioSource);
         }
     }
 
     private void SetRollingAudioVolume(float targetVolume)
     {
+        if (rollAudioSource != null)
+        {
+            rollAudioSource.volume = targetVolume * GetCurrentVolume();
+        }
+    }
+
+    private void FadeInAudio(AudioSource audioSource)
+    {
+        if (fadeCoroutine != null)
+        {
+            StopCoroutine(fadeCoroutine);
+        }
+        fadeCoroutine = StartCoroutine(FadeAudio(audioSource, 0f, 1f, audioFadeDuration));
+    }
+
+    private void FadeOutRollingAudio()
+    {
         if (rollAudioSource != null && rollAudioSource.isPlaying)
         {
-            if (targetVolume == 0f)
+            if (fadeCoroutine != null)
             {
-                rollAudioSource.Stop();
+                StopCoroutine(fadeCoroutine);
             }
-            else
-            {
-                rollAudioSource.volume = targetVolume * GetCurrentVolume();
-            }
+            fadeCoroutine = StartCoroutine(FadeAudio(rollAudioSource, rollAudioSource.volume, 0f, audioFadeDuration / 2));
+        }
+    }
+
+    private IEnumerator FadeAudio(AudioSource audioSource, float startVolume, float targetVolume, float duration)
+    {
+        float currentTime = 0f;
+        while (currentTime < duration)
+        {
+            currentTime += Time.deltaTime;
+            audioSource.volume = Mathf.Lerp(startVolume, targetVolume, currentTime / duration);
+            yield return null;
+        }
+        if (targetVolume == 0f)
+        {
+            audioSource.Stop();
         }
     }
 
