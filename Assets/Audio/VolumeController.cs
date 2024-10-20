@@ -32,6 +32,9 @@ public class VolumeController : MonoBehaviour
     // SFX Volume property for external access
     public float SFXVolume { get; private set; } = 1.0f; // Default SFX volume
 
+    // Property to get the mute state
+    public bool IsMuted { get { return isMuted; } }
+
     private void Awake()
     {
         // Implementing Singleton Pattern
@@ -288,5 +291,11 @@ public class VolumeController : MonoBehaviour
         volumeImage.rectTransform.localEulerAngles = originalRotation;
 
         isShaking = false;  // Allow future shakes
+    }
+
+    // Method to get the current volume
+    public float GetCurrentVolume()
+    {
+        return isMuted ? 0f : Mathf.Clamp01(currentVolume - 0.5f);
     }
 }

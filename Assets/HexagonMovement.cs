@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -41,6 +41,9 @@ public class HexagonMovement : MonoBehaviour
     private float rollVolume = 1f; // Volume level for rolling audio
     private float fadeDuration = 0.25f; // Fade duration for audio (slightly shorter)
 
+    // Reference to VolumeController
+    private VolumeController volumeController;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -71,6 +74,9 @@ public class HexagonMovement : MonoBehaviour
         {
             rollAudioSource.clip = rollClip; // Set roll audio clip
         }
+
+        // Get VolumeController reference
+        volumeController = FindObjectOfType<VolumeController>();
     }
 
     void Update()
@@ -175,7 +181,12 @@ public class HexagonMovement : MonoBehaviour
         // Check if moving horizontally against a wall
         Vector2 direction = new Vector2(horizontalInput, 0);
         RaycastHit2D hit = Physics2D.Raycast(rb.position, direction, 0.1f, obstacleLayer);
-        return hit.collider != null;
+        if (hit.collider != null)
+        {
+            SetRollingAudioVolume(0f); // Stop rolling audio when hitting a wall
+            return true;
+        }
+        return false;
     }
 
     private void HandleJump()
@@ -250,7 +261,6 @@ public class HexagonMovement : MonoBehaviour
         }
     }
 
-
     private void SetRollingAudioVolume(float targetVolume)
     {
         if (rollAudioSource != null && rollAudioSource.isPlaying)
@@ -261,12 +271,11 @@ public class HexagonMovement : MonoBehaviour
             }
             else
             {
-                // Set volume based on global settings whenever it�s being set
+                // Set volume based on global settings whenever it’s being set
                 rollAudioSource.volume = targetVolume * GetCurrentVolume();
             }
         }
     }
-
 
     // Movement Audio Logic
     private void PlayMoveAudio()
@@ -321,6 +330,7 @@ public class HexagonMovement : MonoBehaviour
     {
         if (jumpAudioSource != null && jumpClip != null)
         {
+            jumpAudioSource.pitch = Random.Range(0.9f, 1.1f); // Random pitch variation
             jumpAudioSource.PlayOneShot(jumpClip);
         }
     }
@@ -329,6 +339,7 @@ public class HexagonMovement : MonoBehaviour
     {
         if (dashAudioSource != null && dashClip != null)
         {
+            dashAudioSource.pitch = Random.Range(0.9f, 1.1f); // Random pitch variation
             dashAudioSource.PlayOneShot(dashClip);
         }
     }
@@ -349,8 +360,11 @@ public class HexagonMovement : MonoBehaviour
     // Method to get current audio volume settings (can be customized)
     private float GetCurrentVolume()
     {
-        // Replace this with your global audio volume/mute setting retrieval
-        // For example:
-        return PlayerPrefs.GetFloat("MasterVolume", 1f); // Assume a value between 0 (mute) and 1 (full volume)
+        // Use global volume/mute setting from VolumeController
+        if (volumeController != null)
+        {
+            return volumeController.GetCurrentVolume();
+        }
+        return 1f; // Default volume if VolumeController is not found
     }
 }
