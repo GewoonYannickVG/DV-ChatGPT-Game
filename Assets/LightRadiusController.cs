@@ -83,4 +83,18 @@ public class LightRadiusController : MonoBehaviour
             light2D.intensity = Mathf.Lerp(light2D.intensity, targetIntensity, Time.deltaTime * intensitySpeed);
         }
     }
+
+    public IEnumerator FadeOutLights()
+    {
+        float duration = 2f; // Duration of the fadeout
+        float startIntensity = light2D.intensity;
+
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+            light2D.intensity = Mathf.Lerp(startIntensity, 0, t / duration);
+            yield return null;
+        }
+
+        light2D.intensity = 0;
+    }
 }

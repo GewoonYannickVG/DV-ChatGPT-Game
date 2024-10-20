@@ -97,6 +97,12 @@ public class VolumeController : MonoBehaviour
             isDecreasing = false;
             decreaseHoldTime = 0f;
         }
+
+        // Toggle mute with '0' key
+        if (Input.GetKeyDown(KeyCode.Alpha0))
+        {
+            ToggleMute();
+        }
     }
 
     // Coroutine to handle increasing volume

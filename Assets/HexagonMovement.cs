@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement; // Add this line to use SceneManager
 
 public class HexagonMovement : MonoBehaviour
 {
@@ -379,5 +380,24 @@ public class HexagonMovement : MonoBehaviour
             return volumeController.GetCurrentVolume();
         }
         return 1f; // Default volume if VolumeController is not found
+    }
+
+    // New code for cutscene
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Diamond"))
+        {
+            StartCoroutine(FadeToBlackAndSwitchScene("NextScene")); // Change "NextScene" to your next scene name
+        }
+    }
+
+    private IEnumerator FadeToBlackAndSwitchScene(string sceneName)
+    {
+        LightRadiusController lightController = FindObjectOfType<LightRadiusController>();
+        if (lightController != null)
+        {
+            yield return StartCoroutine(lightController.FadeOutLights());
+        }
+        SceneTransitionManager.Instance.TransitionToScene(sceneName);
     }
 }
