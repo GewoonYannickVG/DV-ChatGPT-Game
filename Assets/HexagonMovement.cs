@@ -38,6 +38,7 @@ public class HexagonMovement : MonoBehaviour
     private bool canDash = true;
     private bool dashTriggered = false;
     private Coroutine fadeCoroutine;
+    private Coroutine checkFadeCoroutine;
 
     private Vector2 previousPosition;
     private float previousYPosition;
@@ -79,6 +80,7 @@ public class HexagonMovement : MonoBehaviour
         if (rollAudioSource != null)
         {
             rollAudioSource.clip = rollClip;
+            rollAudioSource.volume = 0.2f; // Set default volume to 0.2
         }
 
         // Get VolumeController reference
@@ -147,7 +149,7 @@ public class HexagonMovement : MonoBehaviour
 
         if (IsMovingAgainstWall(horizontalInput))
         {
-            FadeOutRollingAudio();
+            QueueFadeOutRollingAudio();
             return;
         }
     }
@@ -182,13 +184,13 @@ public class HexagonMovement : MonoBehaviour
             if (isMoving)
             {
                 isMoving = false;
-                FadeOutRollingAudio();
+                QueueFadeOutRollingAudio();
             }
         }
 
         if (!hasMovedSignificantly)
         {
-            FadeOutRollingAudio();
+            QueueFadeOutRollingAudio();
         }
 
         previousYPosition = rb.position.y;
@@ -200,7 +202,7 @@ public class HexagonMovement : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(rb.position, direction, 0.1f, obstacleLayer);
         if (hit.collider != null)
         {
-            FadeOutRollingAudio();
+            QueueFadeOutRollingAudio();
             return true;
         }
         return false;
@@ -226,7 +228,7 @@ public class HexagonMovement : MonoBehaviour
                 PlayJumpAudio();
             }
 
-            FadeOutRollingAudio();
+            QueueFadeOutRollingAudio();
         }
     }
 
@@ -267,7 +269,7 @@ public class HexagonMovement : MonoBehaviour
         {
             rollAudioSource.clip = rollClip;
             rollAudioSource.loop = true;
-            rollAudioSource.volume = 0f;
+            rollAudioSource.volume = 0.2f; // Default volume set to 0.2
             rollAudioSource.Play();
             FadeInAudio(rollAudioSource);
         }
@@ -287,7 +289,22 @@ public class HexagonMovement : MonoBehaviour
         {
             StopCoroutine(fadeCoroutine);
         }
-        fadeCoroutine = StartCoroutine(FadeAudio(audioSource, 0f, 1f, audioFadeDuration));
+        fadeCoroutine = StartCoroutine(FadeAudio(audioSource, 0.2f, 1f, audioFadeDuration)); // Start volume set to 0.2
+    }
+
+    private void QueueFadeOutRollingAudio()
+    {
+        if (checkFadeCoroutine != null)
+        {
+            StopCoroutine(checkFadeCoroutine);
+        }
+        checkFadeCoroutine = StartCoroutine(CheckFadeOutRollingAudio());
+    }
+
+    private IEnumerator CheckFadeOutRollingAudio()
+    {
+        yield return new WaitForSeconds(0.2f); // Checking time of about 0.2 seconds
+        FadeOutRollingAudio();
     }
 
     private void FadeOutRollingAudio()
