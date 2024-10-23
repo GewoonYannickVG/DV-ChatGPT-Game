@@ -38,14 +38,6 @@ public class HexagonMovement : MonoBehaviour
     private bool canDash = true;
     private bool dashTriggered = false;
     private Coroutine fadeCoroutine;
-    private Coroutine checkFadeCoroutine;
-
-    private Vector2 previousPosition;
-    private float previousYPosition;
-    private bool isMoving = false;
-
-    private float moveCheckTimer = 0.2f; // Reduced interval for faster detection
-    private float moveCheckInterval = 0.2f;
 
     // Reference to VolumeController
     private VolumeController volumeController;
@@ -55,9 +47,6 @@ public class HexagonMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 4.25f;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-
-        previousPosition = rb.position;
-        previousYPosition = rb.position.y;
 
         // Initialize audio sources
         if (moveAudioSource != null)
@@ -92,8 +81,6 @@ public class HexagonMovement : MonoBehaviour
         HandleRolling();
         HandleJump();
         HandleDashInput();
-
-        previousPosition = rb.position;
     }
 
     void FixedUpdate()
@@ -103,14 +90,6 @@ public class HexagonMovement : MonoBehaviour
         if (dashTriggered && canDash && !isGrounded)
         {
             PerformDash();
-        }
-
-        moveCheckTimer -= Time.fixedDeltaTime;
-
-        if (moveCheckTimer <= 0f)
-        {
-            moveCheckTimer = moveCheckInterval;
-            CheckMovement();
         }
     }
 
@@ -147,65 +126,21 @@ public class HexagonMovement : MonoBehaviour
         float maxAngularVelocity = 50f;
         rb.angularVelocity = Mathf.Clamp(rb.angularVelocity, -maxAngularVelocity, maxAngularVelocity);
 
-        if (IsMovingAgainstWall(horizontalInput))
+        if (isGrounded && Mathf.Abs(horizontalInput) > 0.03f && !IsMovingAgainstWall(horizontalInput))
         {
-            QueueFadeOutRollingAudio();
-            return;
-        }
-    }
-
-    private void CheckMovement()
-    {
-        float deltaX = Mathf.Abs(rb.position.x - previousPosition.x);
-        float deltaY = Mathf.Abs(rb.position.y - previousYPosition);
-
-        bool isPlayerMoving = Mathf.Abs(Input.GetAxis("Horizontal")) > 0.03f;
-        bool hasMovedSignificantly = deltaX > 0.001f || deltaY > 0.003f;
-
-        if (isPlayerMoving && isGrounded && hasMovedSignificantly)
-        {
-            if (!isMoving)
-            {
-                isMoving = true;
-                PlayMoveAudio();
-            }
-
-            if (!rollAudioSource.isPlaying)
-            {
-                PlayRollingAudio();
-            }
-            else
-            {
-                SetRollingAudioVolume(1f);
-            }
+            PlayRollingAudio();
         }
         else
         {
-            if (isMoving)
-            {
-                isMoving = false;
-                QueueFadeOutRollingAudio();
-            }
+            FadeOutRollingAudio();
         }
-
-        if (!hasMovedSignificantly)
-        {
-            QueueFadeOutRollingAudio();
-        }
-
-        previousYPosition = rb.position.y;
     }
 
     private bool IsMovingAgainstWall(float horizontalInput)
     {
         Vector2 direction = new Vector2(horizontalInput, 0);
         RaycastHit2D hit = Physics2D.Raycast(rb.position, direction, 0.1f, obstacleLayer);
-        if (hit.collider != null)
-        {
-            QueueFadeOutRollingAudio();
-            return true;
-        }
-        return false;
+        return hit.collider != null && hit.collider.CompareTag("Wall");
     }
 
     private void HandleJump()
@@ -228,7 +163,7 @@ public class HexagonMovement : MonoBehaviour
                 PlayJumpAudio();
             }
 
-            QueueFadeOutRollingAudio();
+            FadeOutRollingAudio();
         }
     }
 
@@ -265,7 +200,7 @@ public class HexagonMovement : MonoBehaviour
 
     private void PlayRollingAudio()
     {
-        if (rollAudioSource != null && rollClip != null)
+        if (rollAudioSource != null && rollClip != null && !rollAudioSource.isPlaying)
         {
             rollAudioSource.clip = rollClip;
             rollAudioSource.loop = true;
@@ -275,36 +210,13 @@ public class HexagonMovement : MonoBehaviour
         }
     }
 
-    private void SetRollingAudioVolume(float targetVolume)
-    {
-        if (rollAudioSource != null)
-        {
-            rollAudioSource.volume = targetVolume * GetCurrentVolume();
-        }
-    }
-
     private void FadeInAudio(AudioSource audioSource)
     {
         if (fadeCoroutine != null)
         {
             StopCoroutine(fadeCoroutine);
         }
-        fadeCoroutine = StartCoroutine(FadeAudio(audioSource, 0.2f, 1f, audioFadeDuration)); // Start volume set to 0.2
-    }
-
-    private void QueueFadeOutRollingAudio()
-    {
-        if (checkFadeCoroutine != null)
-        {
-            StopCoroutine(checkFadeCoroutine);
-        }
-        checkFadeCoroutine = StartCoroutine(CheckFadeOutRollingAudio());
-    }
-
-    private IEnumerator CheckFadeOutRollingAudio()
-    {
-        yield return new WaitForSeconds(0.2f); // Checking time of about 0.2 seconds
-        FadeOutRollingAudio();
+        fadeCoroutine = StartCoroutine(FadeAudio(audioSource, audioSource.volume, 1f, audioFadeDuration));
     }
 
     private void FadeOutRollingAudio()
@@ -331,25 +243,6 @@ public class HexagonMovement : MonoBehaviour
         if (targetVolume == 0f)
         {
             audioSource.Stop();
-        }
-    }
-
-    private void PlayMoveAudio()
-    {
-        if (moveAudioSource != null && movementClip != null && !moveAudioSource.isPlaying)
-        {
-            moveAudioSource.clip = movementClip;
-            moveAudioSource.loop = true;
-            moveAudioSource.volume = 1f;
-            moveAudioSource.Play();
-        }
-    }
-
-    private void StopMoveAudio()
-    {
-        if (moveAudioSource != null && moveAudioSource.isPlaying)
-        {
-            moveAudioSource.Stop();
         }
     }
 
