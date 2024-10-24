@@ -41,6 +41,7 @@ public class HexagonMovement : MonoBehaviour
 
     // Reference to VolumeController
     private VolumeController volumeController;
+    private bool isTouchingWall = false;
 
     void Start()
     {
@@ -126,7 +127,7 @@ public class HexagonMovement : MonoBehaviour
         float maxAngularVelocity = 50f;
         rb.angularVelocity = Mathf.Clamp(rb.angularVelocity, -maxAngularVelocity, maxAngularVelocity);
 
-        if (isGrounded && Mathf.Abs(horizontalInput) > 0.03f && !IsMovingAgainstWall(horizontalInput))
+        if (isGrounded && Mathf.Abs(horizontalInput) > 0.03f && !isTouchingWall)
         {
             PlayRollingAudio();
         }
@@ -136,11 +137,21 @@ public class HexagonMovement : MonoBehaviour
         }
     }
 
-    private bool IsMovingAgainstWall(float horizontalInput)
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        Vector2 direction = new Vector2(horizontalInput, 0);
-        RaycastHit2D hit = Physics2D.Raycast(rb.position, direction, 0.1f, obstacleLayer);
-        return hit.collider != null && hit.collider.CompareTag("Wall");
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            isTouchingWall = true;
+            FadeOutRollingAudio();
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            isTouchingWall = false;
+        }
     }
 
     private void HandleJump()
@@ -204,7 +215,7 @@ public class HexagonMovement : MonoBehaviour
         {
             rollAudioSource.clip = rollClip;
             rollAudioSource.loop = true;
-            rollAudioSource.volume = 0.2f; // Default volume set to 0.2
+            rollAudioSource.volume = 0.2f * GetCurrentVolume(); // Default volume set to 0.2 and respects volume changer
             rollAudioSource.Play();
             FadeInAudio(rollAudioSource);
         }
@@ -216,7 +227,7 @@ public class HexagonMovement : MonoBehaviour
         {
             StopCoroutine(fadeCoroutine);
         }
-        fadeCoroutine = StartCoroutine(FadeAudio(audioSource, audioSource.volume, 1f, audioFadeDuration));
+        fadeCoroutine = StartCoroutine(FadeAudio(audioSource, audioSource.volume, 1f * GetCurrentVolume(), audioFadeDuration));
     }
 
     private void FadeOutRollingAudio()
