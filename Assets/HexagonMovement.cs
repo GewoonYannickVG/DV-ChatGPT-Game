@@ -305,17 +305,17 @@ public class HexagonMovement : MonoBehaviour
     {
         if (other.CompareTag("Diamond"))
         {
-            StartCoroutine(FadeToBlackAndSwitchScene("NextScene"));
+            StartCoroutine(FadeToBlackAndSwitchScene());
         }
     }
 
-    private IEnumerator FadeToBlackAndSwitchScene(string sceneName)
+    private IEnumerator FadeToBlackAndSwitchScene()
     {
         LightRadiusController lightController = FindObjectOfType<LightRadiusController>();
         if (lightController != null)
         {
             yield return StartCoroutine(lightController.FadeOutLights());
         }
-        SceneTransitionManager.Instance.TransitionToScene(sceneName);
+        SceneTransitionManager.Instance.TransitionToNextScene();
     }
 }

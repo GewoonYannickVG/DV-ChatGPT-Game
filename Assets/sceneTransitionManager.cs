@@ -5,6 +5,7 @@ using System.Collections;
 public class SceneTransitionManager : MonoBehaviour
 {
     public static SceneTransitionManager Instance { get; private set; }
+    private DiamondController diamondController;
 
     private void Awake()
     {
@@ -19,15 +20,22 @@ public class SceneTransitionManager : MonoBehaviour
         }
     }
 
-    public void TransitionToScene(string Level1)
+    public void TransitionToNextScene()
     {
-        StartCoroutine(Transition(Level1));
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextSceneIndex = (currentSceneIndex + 1) % SceneManager.sceneCountInBuildSettings;
+        StartCoroutine(Transition(nextSceneIndex));
     }
 
-    private IEnumerator Transition(string Level1)
+    private IEnumerator Transition(int sceneIndex)
     {
-        // Add any transition effects here (e.g., fade out)
+        diamondController = FindObjectOfType<DiamondController>();
+        if (diamondController != null)
+        {
+            yield return StartCoroutine(diamondController.FadeOutLights());
+        }
+
         yield return new WaitForSeconds(1f); // Simulate transition delay
-        SceneManager.LoadScene(Level1);
+        SceneManager.LoadScene(sceneIndex);
     }
 }

@@ -140,4 +140,34 @@ public class DiamondController : MonoBehaviour
             playerNearby = false;
         }
     }
+
+    // Fade out the diamond lights
+    public IEnumerator FadeOutLights()
+    {
+        float fadeDuration = 1f;
+        float timer = 0f;
+
+        while (timer < fadeDuration)
+        {
+            timer += Time.deltaTime;
+            float t = timer / fadeDuration;
+            diamondLight.intensity = Mathf.Lerp(initialIntensity, 0, t);
+            spotLight.intensity = Mathf.Lerp(initialSpotIntensity, 0, t);
+            yield return null;
+        }
+
+        diamondLight.intensity = 0;
+        spotLight.intensity = 0;
+
+        RemoveOriginalDiamondIfDuplicateExists();
+    }
+
+    private void RemoveOriginalDiamondIfDuplicateExists()
+    {
+        DiamondController[] diamonds = FindObjectsOfType<DiamondController>();
+        if (diamonds.Length > 1)
+        {
+            Destroy(gameObject);
+        }
+    }
 }
