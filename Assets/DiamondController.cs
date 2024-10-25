@@ -5,6 +5,8 @@ using UnityEngine.Rendering.Universal;
 
 public class DiamondController : MonoBehaviour
 {
+    private static DiamondController instance;
+
     public Transform hexagonTransform;    // Reference to the hexagon's transform
     public Transform diamondLightObject;  // Reference to the Light2D object inside the diamond (main light)
     public Transform spotLightObject;     // Reference to the Light2D SpotLight object
@@ -29,6 +31,19 @@ public class DiamondController : MonoBehaviour
     private float initialRadiusOuter = 12f;       // Default outer radius for the spotlight
     private float initialFalloffStrength = 0.767f; // Default falloff strength for the spotlight
     private bool playerNearby = false;    // Track if the player is near
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);  // Make this object persist across scenes
+        }
+        else
+        {
+            Destroy(gameObject);  // Destroy duplicate DiamondController
+        }
+    }
 
     void Start()
     {

@@ -4,6 +4,8 @@ using System.Collections; // Ensure this is included for IEnumerator
 
 public class LightRadiusController : MonoBehaviour
 {
+    private static LightRadiusController instance;
+
     [Header("Light Settings")]
     [SerializeField] private Light2D light2D;                     // Reference to the Light2D component
     [SerializeField] private float maxRadius = 10f;               // Maximum outer radius
@@ -20,6 +22,19 @@ public class LightRadiusController : MonoBehaviour
 
     private float targetRadius;                                    // The target radius to smoothly transition to
     private float targetIntensity;                                 // The target intensity to smoothly transition to
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);  // Make this object persist across scenes
+        }
+        else
+        {
+            Destroy(gameObject);  // Destroy duplicate LightRadiusController
+        }
+    }
 
     void Start()
     {

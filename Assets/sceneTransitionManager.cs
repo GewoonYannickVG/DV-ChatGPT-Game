@@ -19,15 +19,15 @@ public class SceneTransitionManager : MonoBehaviour
         }
     }
 
-    public void TransitionToScene(string sceneName)
+    public void TransitionToScene(string Level1)
     {
-        StartCoroutine(Transition(sceneName));
+        StartCoroutine(Transition(Level1));
     }
 
-    private IEnumerator Transition(string sceneName)
+    private IEnumerator Transition(string Level1)
     {
         // Add any transition effects here (e.g., fade out)
         yield return new WaitForSeconds(1f); // Simulate transition delay
-        SceneManager.LoadScene(sceneName);
+        SceneManager.LoadScene(Level1);
     }
 }

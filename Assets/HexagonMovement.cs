@@ -43,6 +43,11 @@ public class HexagonMovement : MonoBehaviour
     private VolumeController volumeController;
     private bool isTouchingWall = false;
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject); // Persist across scenes
+    }
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
+    private static CameraFollow instance;
+
     [Header("Camera Settings")]
     [SerializeField] private Vector3 offset = new Vector3(0f, 0f, -10f); // Offset position from the target
     [SerializeField] private float smoothTime = 0.2f; // Smooth time for camera movement
@@ -18,6 +20,19 @@ public class CameraFollow : MonoBehaviour
     private float targetFOV; // Target FOV value
     private float currentFOV; // Current FOV value
     private Vector3 velocity = Vector3.zero; // Velocity for SmoothDamp
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);  // Make this object persist across scenes
+        }
+        else
+        {
+            Destroy(gameObject);  // Destroy duplicate CameraFollow
+        }
+    }
 
     private void Start()
     {
