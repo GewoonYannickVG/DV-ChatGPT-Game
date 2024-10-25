@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -312,10 +311,19 @@ public class HexagonMovement : MonoBehaviour
     private IEnumerator FadeToBlackAndSwitchScene()
     {
         LightRadiusController lightController = FindObjectOfType<LightRadiusController>();
-        if (lightController != null)
+        DiamondController diamondController = DiamondController.Instance;
+
+        if (lightController != null && diamondController != null)
         {
-            yield return StartCoroutine(lightController.FadeOutLights());
+            // Start both fade-out processes
+            IEnumerator lightFadeOut = lightController.FadeOutLights();
+            IEnumerator diamondFadeOut = diamondController.FadeOutLights();
+
+            // Wait for both fade-out processes to complete
+            yield return StartCoroutine(lightFadeOut);
+            yield return StartCoroutine(diamondFadeOut);
         }
+
         SceneTransitionManager.Instance.TransitionToNextScene();
     }
 }
