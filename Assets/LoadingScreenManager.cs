@@ -26,41 +26,53 @@ public class LoadingScreenManager : MonoBehaviour
             progressText = progressTextObject.GetComponent<TMP_Text>();
         }
 
-        StartCoroutine(LoadAllScenes());
+        StartCoroutine(PreloadScenes());
     }
 
-    IEnumerator LoadAllScenes()
+    IEnumerator PreloadScenes()
     {
-        Debug.Log("Starting to load scenes...");
         for (int i = 0; i < scenesToLoad.Length; i++)
         {
-            Debug.Log("Loading scene: " + scenesToLoad[i]);
+            Debug.Log("Preloading scene: " + scenesToLoad[i]);
             AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(scenesToLoad[i], LoadSceneMode.Additive);
-            asyncLoad.allowSceneActivation = false;
+            asyncLoad.allowSceneActivation = false; // Preload without activation
 
             while (!asyncLoad.isDone)
             {
                 float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
                 progressBar.value = (i + progress) / scenesToLoad.Length;
                 progressText.text = Mathf.RoundToInt(progressBar.value * 100f) + "%";
-                Debug.Log($"Scene: {scenesToLoad[i]}, Progress: {progress * 100f}%, Total Progress: {progressBar.value * 100f}%");
+                Debug.Log($"Preloading progress for {scenesToLoad[i]}: {progress * 100f}%, Overall progress: {progressBar.value * 100f}%");
 
-                // Check if the operation is stuck
                 if (progress >= 0.9f)
                 {
-                    Debug.Log($"Scene {scenesToLoad[i]} is ready to activate.");
-                    asyncLoad.allowSceneActivation = true;
+                    Debug.Log("Scene almost ready for activation: " + scenesToLoad[i]);
+                    break; // Exit loop to allow scene activation
                 }
 
                 yield return null;
             }
 
-            Debug.Log("Scene loaded: " + scenesToLoad[i]);
+            asyncLoad.allowSceneActivation = true;
+            Debug.Log("Scene activated: " + scenesToLoad[i]);
+
+            // Wait until the scene is fully activated
+            while (!asyncLoad.isDone)
+            {
+                yield return null;
+            }
+
+            Debug.Log("Scene fully loaded: " + scenesToLoad[i]);
         }
 
-        yield return new WaitForSeconds(1f); // Ensure all scenes are activated
-
+        Debug.Log("All scenes preloaded. Ready to activate.");
         StartCoroutine(FadeOutLoadingScreen());
+    }
+
+    public void ActivateScene(string sceneName)
+    {
+        Debug.Log("Activating scene: " + sceneName);
+        SceneManager.LoadScene(sceneName, LoadSceneMode.Single); // Activate scene when needed
     }
 
     IEnumerator FadeOutLoadingScreen()
@@ -76,5 +88,6 @@ public class LoadingScreenManager : MonoBehaviour
         }
 
         loadingScreen.SetActive(false);
+        Debug.Log("Loading screen faded out.");
     }
 }
