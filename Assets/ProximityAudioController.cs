@@ -69,5 +69,10 @@ public class ProximityAudioController : MonoBehaviour
         audioSource.volume = Mathf.Lerp(0f, 1f, proximityFactor); // Smoothly fade in volume
         audioMixerGroup.audioMixer.SetFloat(volumeParameter, Mathf.Lerp(-80f, 0f, proximityFactor)); // Adjust volume
         audioMixerGroup.audioMixer.SetFloat(bassParameter, Mathf.Lerp(1000f, 22000f, proximityFactor)); // Adjust low-pass filter to increase bass
+
+        // Calculate stereo pan based on the player's position relative to the audio source
+        Vector3 direction = playerTransform.position - transform.position;
+        float angle = Vector3.SignedAngle(transform.forward, direction, Vector3.up);
+        audioSource.panStereo = Mathf.Clamp(angle / 90f, .75f, -.75f); // Pan based on angle (-1 is left, 1 is right)
     }
 }

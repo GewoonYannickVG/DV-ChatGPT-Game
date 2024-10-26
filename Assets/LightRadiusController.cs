@@ -14,8 +14,8 @@ public class LightRadiusController : MonoBehaviour
     [Header("Intensity Settings")]
     [SerializeField] private float normalIntensity = 1f;
     [SerializeField] private float reducedIntensity = 0.5f;
-    [SerializeField] private float intensityChangeSpeedHold = 2f;
-    [SerializeField] private float intensityChangeSpeedRelease = 2f;
+    [SerializeField] private float intensityChangeDurationHold = 2f;  // Duration in seconds
+    [SerializeField] private float intensityChangeDurationRelease = 2f;  // Duration in seconds
 
     private float targetRadius;
     private float targetIntensity;
@@ -59,8 +59,8 @@ public class LightRadiusController : MonoBehaviour
             light2D.pointLightOuterRadius = Mathf.Lerp(light2D.pointLightOuterRadius, targetRadius, Time.deltaTime * radiusChangeSpeed);
 
             float intensitySpeed = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                ? intensityChangeSpeedHold
-                : intensityChangeSpeedRelease;
+                ? 1f / intensityChangeDurationHold
+                : 1f / intensityChangeDurationRelease;
 
             light2D.intensity = Mathf.Lerp(light2D.intensity, targetIntensity, Time.deltaTime * intensitySpeed);
         }
