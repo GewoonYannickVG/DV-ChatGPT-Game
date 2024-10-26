@@ -27,9 +27,11 @@ public class DiamondController : MonoBehaviour
     public Transform hexagonTransform;
     public Transform diamondLightObject;
     public Transform spotLightObject;
+    public Transform playerTransform;
     public float floatSpeed = 1f;
     public float floatHeight = 0.5f;
     public float flickerSpeed = 0.1f;
+    public float baseFlickerSpeed = 0.1f;
     public float proximityFlickerSpeed = 0.05f;
     public float proximityScale = 1.2f;
     public float flickerIntensityChange = 0.5f;
@@ -37,7 +39,11 @@ public class DiamondController : MonoBehaviour
     public float maxScaleDistance = 5f;
     public float maxShakeAmount = 0.1f;
     public float maxRotationAmount = 5f;
-    public Collider2D sceneTransitionCollider; // Add this line
+    public float transitionRadius = 0.5f;
+    public float initialFalloffStrength = 0.767f; // Add this line
+    public float redLightStartDistance = 10f; // Distance from which red light starts
+    public float maxRedLightIntensity = 2f; // Maximum red light intensity
+    public float maxFlickerSpeed = 0.2f; // Maximum flicker speed near the diamond
 
     private Light2D diamondLight;
     private Light2D spotLight;
@@ -49,8 +55,6 @@ public class DiamondController : MonoBehaviour
     private float initialSpotIntensity = 0.26f;
     private float initialRadiusInner = 0f;
     private float initialRadiusOuter = 12f;
-    private float initialFalloffStrength = 0.767f;
-    private bool playerNearby = false;
 
     private void Awake()
     {
@@ -123,50 +127,37 @@ public class DiamondController : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 0, rotationOffset);
         }
 
-        if (playerNearby)
-        {
-            diamondLight.intensity = initialIntensity + Random.Range(-flickerIntensityChange, flickerIntensityChange);
-            diamondLight.color = Color.Lerp(diamondLight.color, Color.red, Time.deltaTime * 2);
-
-            spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange, spotlightFlickerIntensityChange);
-            spotLight.color = Color.Lerp(spotLight.color, Color.red, Time.deltaTime * 2);
-            spotLight.pointLightOuterRadius = Mathf.Lerp(spotLight.pointLightOuterRadius, initialRadiusOuter * 1.1f, Time.deltaTime * 2);
-        }
-        else
-        {
-            diamondLight.intensity = initialIntensity + Random.Range(-flickerIntensityChange / 2, flickerIntensityChange / 2);
-            diamondLight.color = Color.Lerp(diamondLight.color, initialLightColor, Time.deltaTime * 2);
-
-            spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange / 2, spotlightFlickerIntensityChange / 2);
-            spotLight.color = Color.Lerp(spotLight.color, initialSpotColor, Time.deltaTime * 2);
-            spotLight.pointLightOuterRadius = Mathf.Lerp(spotLight.pointLightOuterRadius, initialRadiusOuter, Time.deltaTime * 2);
-        }
+        UpdateLightEffects();
+        CheckPlayerProximity();
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void UpdateLightEffects()
     {
-        if (sceneTransitionCollider != null && collision.collider == sceneTransitionCollider)
+        float distanceToPlayer = playerTransform != null ? Vector3.Distance(transform.position, playerTransform.position) : float.MaxValue;
+        float proximityFactor = Mathf.Clamp01((redLightStartDistance - distanceToPlayer) / redLightStartDistance);
+
+        diamondLight.intensity = initialIntensity + Random.Range(-flickerIntensityChange, flickerIntensityChange) * proximityFactor;
+        diamondLight.color = Color.Lerp(initialLightColor, Color.red, proximityFactor);
+
+        spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange, spotlightFlickerIntensityChange) * proximityFactor;
+        spotLight.color = Color.Lerp(initialSpotColor, Color.red, proximityFactor);
+        spotLight.pointLightOuterRadius = Mathf.Lerp(initialRadiusOuter, initialRadiusOuter * 1.1f, proximityFactor);
+
+        // Adjust flicker speed based on proximity
+        float currentFlickerSpeed = Mathf.Lerp(baseFlickerSpeed, maxFlickerSpeed, proximityFactor);
+        diamondLight.intensity += Mathf.Sin(Time.time * currentFlickerSpeed) * flickerIntensityChange * proximityFactor;
+        spotLight.intensity += Mathf.Sin(Time.time * currentFlickerSpeed) * spotlightFlickerIntensityChange * proximityFactor;
+    }
+
+    private void CheckPlayerProximity()
+    {
+        if (playerTransform != null)
         {
-            if (collision.collider.CompareTag("Player"))
+            float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+            if (distanceToPlayer <= transitionRadius)
             {
                 SceneTransitionManager.Instance.TransitionToNextScene();
             }
-        }
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerNearby = true;
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerNearby = false;
         }
     }
 
