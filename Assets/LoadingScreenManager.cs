@@ -31,6 +31,7 @@ public class LoadingScreenManager : MonoBehaviour
 
     IEnumerator LoadAllScenes()
     {
+        Debug.Log("Starting to load scenes...");
         for (int i = 0; i < scenesToLoad.Length; i++)
         {
             Debug.Log("Loading scene: " + scenesToLoad[i]);
@@ -42,11 +43,18 @@ public class LoadingScreenManager : MonoBehaviour
                 float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
                 progressBar.value = (i + progress) / scenesToLoad.Length;
                 progressText.text = Mathf.RoundToInt(progressBar.value * 100f) + "%";
-                Debug.Log("Loading progress: " + progressBar.value * 100f + "%");
+                Debug.Log($"Scene: {scenesToLoad[i]}, Progress: {progress * 100f}%, Total Progress: {progressBar.value * 100f}%");
+
+                // Check if the operation is stuck
+                if (progress >= 0.9f)
+                {
+                    Debug.Log($"Scene {scenesToLoad[i]} is ready to activate.");
+                    asyncLoad.allowSceneActivation = true;
+                }
+
                 yield return null;
             }
 
-            asyncLoad.allowSceneActivation = true;
             Debug.Log("Scene loaded: " + scenesToLoad[i]);
         }
 
