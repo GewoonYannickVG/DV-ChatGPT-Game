@@ -9,10 +9,9 @@ public class LoadingScreenManager : MonoBehaviour
     public GameObject loadingScreen; // Should be Panel GameObject
     public Slider progressBar; // Should be Slider UI element
     public GameObject progressTextObject; // Should be Text Mesh Pro UI element
-
     public string[] scenesToLoad;
-
     private TMP_Text progressText;
+    private AsyncOperation[] asyncLoads;
 
     void Start()
     {
@@ -47,14 +46,12 @@ public class LoadingScreenManager : MonoBehaviour
                 if (progress >= 0.9f)
                 {
                     Debug.Log("Scene almost ready for activation: " + scenesToLoad[i]);
-                    break; // Exit loop to allow scene activation
+                    asyncLoad.allowSceneActivation = true; // Allow scene activation
+                    break;
                 }
 
                 yield return null;
             }
-
-            asyncLoad.allowSceneActivation = true;
-            Debug.Log("Scene activated: " + scenesToLoad[i]);
 
             // Wait until the scene is fully activated
             while (!asyncLoad.isDone)
@@ -69,10 +66,12 @@ public class LoadingScreenManager : MonoBehaviour
         StartCoroutine(FadeOutLoadingScreen());
     }
 
-    public void ActivateScene(string sceneName)
+    public void ActivateScene(int sceneIndex)
     {
-        Debug.Log("Activating scene: " + sceneName);
-        SceneManager.LoadScene(sceneName, LoadSceneMode.Single); // Activate scene when needed
+        if (asyncLoads != null && sceneIndex < asyncLoads.Length)
+        {
+            asyncLoads[sceneIndex].allowSceneActivation = true;
+        }
     }
 
     IEnumerator FadeOutLoadingScreen()
@@ -88,6 +87,5 @@ public class LoadingScreenManager : MonoBehaviour
         }
 
         loadingScreen.SetActive(false);
-        Debug.Log("Loading screen faded out.");
     }
 }
