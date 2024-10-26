@@ -310,19 +310,7 @@ public class HexagonMovement : MonoBehaviour
 
     private IEnumerator FadeToBlackAndSwitchScene()
     {
-        LightRadiusController lightController = FindObjectOfType<LightRadiusController>();
-        DiamondController diamondController = DiamondController.Instance;
-
-        if (lightController != null && diamondController != null)
-        {
-            // Start both fade-out processes
-            IEnumerator lightFadeOut = lightController.FadeOutLights();
-            IEnumerator diamondFadeOut = diamondController.FadeOutLights();
-
-            // Wait for both fade-out processes to complete
-            yield return StartCoroutine(lightFadeOut);
-            yield return StartCoroutine(diamondFadeOut);
-        }
+        yield return new WaitForSeconds(0.2f); // Add a delay if needed
 
         SceneTransitionManager.Instance.TransitionToNextScene();
     }

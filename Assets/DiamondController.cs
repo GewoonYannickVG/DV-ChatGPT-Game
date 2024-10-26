@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
-using System.Collections;
 using UnityEngine.Rendering.Universal;
 
 public class DiamondController : MonoBehaviour
@@ -35,6 +34,8 @@ public class DiamondController : MonoBehaviour
     public float flickerIntensityChange = 0.5f;
     public float spotlightFlickerIntensityChange = 0.1f;
     public float maxScaleDistance = 5f;
+    public float maxShakeAmount = 0.1f;
+    public float maxRotationAmount = 5f;
 
     private Light2D diamondLight;
     private Light2D spotLight;
@@ -48,8 +49,6 @@ public class DiamondController : MonoBehaviour
     private float initialRadiusOuter = 12f;
     private float initialFalloffStrength = 0.767f;
     private bool playerNearby = false;
-
-    private bool shouldFadeIn = true;
 
     private void Awake()
     {
@@ -91,14 +90,11 @@ public class DiamondController : MonoBehaviour
         initialLightColor = diamondLight.color;
         initialIntensity = diamondLight.intensity;
 
-        if (shouldFadeIn)
-        {
-            spotLight.color = initialSpotColor;
-            spotLight.intensity = initialSpotIntensity;
-            spotLight.pointLightInnerRadius = initialRadiusInner;
-            spotLight.pointLightOuterRadius = initialRadiusOuter;
-            spotLight.falloffIntensity = initialFalloffStrength;
-        }
+        spotLight.color = initialSpotColor;
+        spotLight.intensity = initialSpotIntensity;
+        spotLight.pointLightInnerRadius = initialRadiusInner;
+        spotLight.pointLightOuterRadius = initialRadiusOuter;
+        spotLight.falloffIntensity = initialFalloffStrength;
     }
 
     void Update()
@@ -111,6 +107,18 @@ public class DiamondController : MonoBehaviour
             float distance = Vector3.Distance(transform.position, hexagonTransform.position);
             float scale = Mathf.Clamp(1f + (proximityScale - 1f) * (1f - (distance / maxScaleDistance)), 1f, proximityScale);
             transform.localScale = initialScale * scale;
+
+            // Calculate shake intensity based on distance
+            float shakeIntensity = Mathf.Clamp01(1f - (distance / maxScaleDistance));
+            Vector3 shakeOffset = new Vector3(
+                Random.Range(-maxShakeAmount, maxShakeAmount) * shakeIntensity,
+                Random.Range(-maxShakeAmount, maxShakeAmount) * shakeIntensity,
+                0
+            );
+            float rotationOffset = Random.Range(-maxRotationAmount, maxRotationAmount) * shakeIntensity;
+
+            transform.position += shakeOffset;
+            transform.rotation = Quaternion.Euler(0, 0, rotationOffset);
         }
 
         if (playerNearby)
@@ -146,41 +154,6 @@ public class DiamondController : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerNearby = false;
-        }
-    }
-
-    public IEnumerator FadeOutLights()
-    {
-        shouldFadeIn = false;
-        float fadeDuration = 1f;
-        float timer = 0f;
-
-        while (timer < fadeDuration)
-        {
-            timer += Time.deltaTime;
-            float t = timer / fadeDuration;
-            diamondLight.intensity = Mathf.Lerp(initialIntensity, 0, t);
-            spotLight.intensity = Mathf.Lerp(initialSpotIntensity, 0, t);
-            yield return null;
-        }
-
-        diamondLight.intensity = 0;
-        spotLight.intensity = 0;
-
-        RemoveOriginalDiamondIfDuplicateExists();
-    }
-
-    public void StartFadeOutLights()
-    {
-        StartCoroutine(FadeOutLights());
-    }
-
-    private void RemoveOriginalDiamondIfDuplicateExists()
-    {
-        DiamondController[] diamonds = FindObjectsOfType<DiamondController>();
-        if (diamonds.Length > 1)
-        {
-            Destroy(gameObject);
         }
     }
 }
