@@ -48,7 +48,7 @@ public class SceneTransitionManager : MonoBehaviour
 
     private IEnumerator Transition(int sceneIndex)
     {
-        // Start fade-in
+        Time.timeScale = 1; // Ensure normal speed
         yield return StartCoroutine(Fade(1));
 
         diamondController = FindObjectOfType<DiamondController>();
@@ -58,7 +58,14 @@ public class SceneTransitionManager : MonoBehaviour
         }
 
         yield return new WaitForSeconds(1f); // Simulate transition delay
-        SceneManager.LoadScene(sceneIndex);
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneIndex);
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+
+        // Add a delay to ensure the scene is fully loaded before starting the fade-out
+        yield return new WaitForSeconds(1f);
 
         // Start fade-out
         yield return StartCoroutine(Fade(0));
