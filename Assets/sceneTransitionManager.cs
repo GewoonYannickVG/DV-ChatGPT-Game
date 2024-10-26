@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.UI; // Add this to use UI components
 
 public class SceneTransitionManager : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class SceneTransitionManager : MonoBehaviour
     public GameObject fadeToBlack; // Reference to the FadeToBlack GameObject
     public float transitionDuration = 3f; // Duration of the fade-in and fade-out
 
-    private CanvasGroup panelCanvasGroup; // Reference to the CanvasGroup component of the panel
+    private Image blackPanel; // Reference to the Image component of the black panel
 
     private void Awake()
     {
@@ -26,10 +27,10 @@ public class SceneTransitionManager : MonoBehaviour
 
         if (fadeToBlack != null)
         {
-            panelCanvasGroup = fadeToBlack.GetComponentInChildren<CanvasGroup>();
-            if (panelCanvasGroup == null)
+            blackPanel = fadeToBlack.GetComponentInChildren<Image>();
+            if (blackPanel == null)
             {
-                Debug.LogError("CanvasGroup component not found in FadeToBlack GameObject.");
+                Debug.LogError("Black panel Image component not found in FadeToBlack GameObject.");
             }
         }
         else
@@ -65,17 +66,17 @@ public class SceneTransitionManager : MonoBehaviour
 
     private IEnumerator Fade(float targetAlpha)
     {
-        float startAlpha = panelCanvasGroup.alpha;
+        float startAlpha = blackPanel.color.a;
         float elapsedTime = 0f;
 
         while (elapsedTime < transitionDuration)
         {
             elapsedTime += Time.deltaTime;
             float alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsedTime / transitionDuration);
-            panelCanvasGroup.alpha = alpha;
+            blackPanel.color = new Color(blackPanel.color.r, blackPanel.color.g, blackPanel.color.b, alpha);
             yield return null;
         }
 
-        panelCanvasGroup.alpha = targetAlpha;
+        blackPanel.color = new Color(blackPanel.color.r, blackPanel.color.g, blackPanel.color.b, targetAlpha);
     }
 }

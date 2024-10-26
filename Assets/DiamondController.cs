@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
+using System.Collections; // Add this line
 
 public class DiamondController : MonoBehaviour
 {
@@ -155,5 +156,23 @@ public class DiamondController : MonoBehaviour
         {
             playerNearby = false;
         }
+    }
+
+    public IEnumerator FadeOutLights()
+    {
+        float fadeDuration = 1f;
+        float timer = 0f;
+
+        while (timer < fadeDuration)
+        {
+            timer += Time.deltaTime;
+            float t = timer / fadeDuration;
+            diamondLight.intensity = Mathf.Lerp(initialIntensity, 0, t);
+            spotLight.intensity = Mathf.Lerp(initialSpotIntensity, 0, t);
+            yield return null;
+        }
+
+        diamondLight.intensity = 0;
+        spotLight.intensity = 0;
     }
 }
