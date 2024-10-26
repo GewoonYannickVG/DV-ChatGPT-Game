@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
-using System.Collections; // Add this line
+using System.Collections;
 
 public class DiamondController : MonoBehaviour
 {
@@ -37,6 +37,7 @@ public class DiamondController : MonoBehaviour
     public float maxScaleDistance = 5f;
     public float maxShakeAmount = 0.1f;
     public float maxRotationAmount = 5f;
+    public Collider2D sceneTransitionCollider; // Add this line
 
     private Light2D diamondLight;
     private Light2D spotLight;
@@ -139,6 +140,17 @@ public class DiamondController : MonoBehaviour
             spotLight.intensity = initialSpotIntensity + Random.Range(-spotlightFlickerIntensityChange / 2, spotlightFlickerIntensityChange / 2);
             spotLight.color = Color.Lerp(spotLight.color, initialSpotColor, Time.deltaTime * 2);
             spotLight.pointLightOuterRadius = Mathf.Lerp(spotLight.pointLightOuterRadius, initialRadiusOuter, Time.deltaTime * 2);
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (sceneTransitionCollider != null && collision.collider == sceneTransitionCollider)
+        {
+            if (collision.collider.CompareTag("Player"))
+            {
+                SceneTransitionManager.Instance.TransitionToNextScene();
+            }
         }
     }
 
