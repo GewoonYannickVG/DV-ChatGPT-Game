@@ -106,7 +106,8 @@ public class VolumeController : MonoBehaviour
     }
 
     // Coroutine to handle increasing volume
-    IEnumerator HandleIncreaseVolume()
+    // Change the access modifiers of these methods from private to public
+    public IEnumerator HandleIncreaseVolume()
     {
         IncreaseVolume();
         isIncreasing = true;
@@ -127,8 +128,7 @@ public class VolumeController : MonoBehaviour
         }
     }
 
-    // Coroutine to handle decreasing volume
-    IEnumerator HandleDecreaseVolume()
+    public IEnumerator HandleDecreaseVolume()
     {
         DecreaseVolume();
         isDecreasing = true;

@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using UnityEngine.UI; // Add this to use UI components
+using UnityEngine.UI;
+using UnityEngine.Audio;
 
 public class SceneTransitionManager : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class SceneTransitionManager : MonoBehaviour
 
     public GameObject fadeToBlack; // Reference to the FadeToBlack GameObject
     public float transitionDuration = 3f; // Duration of the fade-in and fade-out
+    public AudioMixer audioMixer; // Reference to the AudioMixer
+    public string exposedVolumeParameter = "Volume"; // Exposed parameter name
 
     private Image blackPanel; // Reference to the Image component of the black panel
 
@@ -50,6 +53,7 @@ public class SceneTransitionManager : MonoBehaviour
     {
         Time.timeScale = 1; // Ensure normal speed
         yield return StartCoroutine(Fade(1));
+        yield return StartCoroutine(FadeMixerGroupVolume(0f, -80f)); // Fade out volume
 
         diamondController = FindObjectOfType<DiamondController>();
         if (diamondController != null)
@@ -69,6 +73,7 @@ public class SceneTransitionManager : MonoBehaviour
 
         // Start fade-out
         yield return StartCoroutine(Fade(0));
+        yield return StartCoroutine(FadeMixerGroupVolume(-80f, 0f)); // Fade in volume
     }
 
     private IEnumerator Fade(float targetAlpha)
@@ -85,5 +90,21 @@ public class SceneTransitionManager : MonoBehaviour
         }
 
         blackPanel.color = new Color(blackPanel.color.r, blackPanel.color.g, blackPanel.color.b, targetAlpha);
+    }
+
+    private IEnumerator FadeMixerGroupVolume(float startVolume, float targetVolume)
+    {
+        float currentTime = 0f;
+        float duration = transitionDuration;
+
+        audioMixer.GetFloat(exposedVolumeParameter, out startVolume);
+        while (currentTime < duration)
+        {
+            currentTime += Time.deltaTime;
+            float newVolume = Mathf.Lerp(startVolume, targetVolume, currentTime / duration);
+            audioMixer.SetFloat(exposedVolumeParameter, newVolume);
+            yield return null;
+        }
+        audioMixer.SetFloat(exposedVolumeParameter, targetVolume);
     }
 }
