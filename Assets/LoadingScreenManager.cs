@@ -15,17 +15,21 @@ public class LoadingScreenManager : MonoBehaviour
 
     void Start()
     {
-        if (loadingScreen != null)
+        if (SceneManager.GetActiveScene().name == "Menu")
         {
-            loadingScreen.SetActive(true);
-        }
+            if (loadingScreen != null)
+            {
+                loadingScreen.SetActive(true);
+            }
 
-        if (progressTextObject != null)
-        {
-            progressText = progressTextObject.GetComponent<TMP_Text>();
-        }
+            if (progressTextObject != null)
+            {
+                progressText = progressTextObject.GetComponent<TMP_Text>();
+            }
 
-        StartCoroutine(PreloadScenes());
+            asyncLoads = new AsyncOperation[scenesToLoad.Length];
+            StartCoroutine(PreloadScenes());
+        }
     }
 
     IEnumerator PreloadScenes()
@@ -33,33 +37,20 @@ public class LoadingScreenManager : MonoBehaviour
         for (int i = 0; i < scenesToLoad.Length; i++)
         {
             Debug.Log("Preloading scene: " + scenesToLoad[i]);
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(scenesToLoad[i], LoadSceneMode.Additive);
-            asyncLoad.allowSceneActivation = false; // Preload without activation
+            asyncLoads[i] = SceneManager.LoadSceneAsync(scenesToLoad[i], LoadSceneMode.Additive);
+            asyncLoads[i].allowSceneActivation = false; // Preload without activation
 
-            while (!asyncLoad.isDone)
+            while (asyncLoads[i].progress < 0.9f)
             {
-                float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
+                float progress = Mathf.Clamp01(asyncLoads[i].progress / 0.9f);
                 progressBar.value = (i + progress) / scenesToLoad.Length;
                 progressText.text = Mathf.RoundToInt(progressBar.value * 100f) + "%";
                 Debug.Log($"Preloading progress for {scenesToLoad[i]}: {progress * 100f}%, Overall progress: {progressBar.value * 100f}%");
 
-                if (progress >= 0.9f)
-                {
-                    Debug.Log("Scene almost ready for activation: " + scenesToLoad[i]);
-                    asyncLoad.allowSceneActivation = true; // Allow scene activation
-                    break;
-                }
-
                 yield return null;
             }
 
-            // Wait until the scene is fully activated
-            while (!asyncLoad.isDone)
-            {
-                yield return null;
-            }
-
-            Debug.Log("Scene fully loaded: " + scenesToLoad[i]);
+            Debug.Log("Scene preloaded: " + scenesToLoad[i]);
         }
 
         Debug.Log("All scenes preloaded. Ready to activate.");

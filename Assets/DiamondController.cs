@@ -24,10 +24,8 @@ public class DiamondController : MonoBehaviour
         }
     }
 
-    public Transform hexagonTransform;
     public Transform diamondLightObject;
     public Transform spotLightObject;
-    public Transform playerTransform;
     public float floatSpeed = 1f;
     public float floatHeight = 0.5f;
     public float flickerSpeed = 0.1f;
@@ -47,6 +45,8 @@ public class DiamondController : MonoBehaviour
 
     private Light2D diamondLight;
     private Light2D spotLight;
+    private Transform playerTransform;
+    private Transform hexagonTransform;
     private Vector3 initialPosition;
     private Vector3 initialScale;
     private Color initialLightColor;
@@ -55,6 +55,7 @@ public class DiamondController : MonoBehaviour
     private float initialSpotIntensity = 0.26f;
     private float initialRadiusInner = 0f;
     private float initialRadiusOuter = 12f;
+    private bool isTransitioning = false; // Flag to prevent multiple transitions
 
     private void Awake()
     {
@@ -70,6 +71,26 @@ public class DiamondController : MonoBehaviour
 
     void Start()
     {
+        GameObject playerObj = GameObject.Find("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+        }
+        else
+        {
+            Debug.LogError("Player object not found in the scene.");
+        }
+
+        GameObject hexagonObj = GameObject.Find("Player");
+        if (hexagonObj != null)
+        {
+            hexagonTransform = hexagonObj.transform;
+        }
+        else
+        {
+            Debug.LogError("Hexagon object not found in the scene.");
+        }
+
         if (diamondLightObject != null)
         {
             diamondLight = diamondLightObject.GetComponent<Light2D>();
@@ -132,7 +153,13 @@ public class DiamondController : MonoBehaviour
 
     private void UpdateLightEffects()
     {
-        float distanceToPlayer = playerTransform != null ? Vector3.Distance(transform.position, playerTransform.position) : float.MaxValue;
+        if (playerTransform == null)
+        {
+            Debug.LogError("Player transform is not set.");
+            return;
+        }
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
         float proximityFactor = Mathf.Clamp01((redLightStartDistance - distanceToPlayer) / redLightStartDistance);
 
         diamondLight.intensity = initialIntensity + Random.Range(-flickerIntensityChange, flickerIntensityChange) * proximityFactor;
@@ -150,11 +177,12 @@ public class DiamondController : MonoBehaviour
 
     private void CheckPlayerProximity()
     {
-        if (playerTransform != null)
+        if (playerTransform != null && !isTransitioning)
         {
             float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
             if (distanceToPlayer <= transitionRadius)
             {
+                isTransitioning = true; // Set transitioning flag
                 SceneTransitionManager.Instance.TransitionToNextScene();
             }
         }

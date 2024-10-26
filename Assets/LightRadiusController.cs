@@ -25,7 +25,6 @@ public class LightRadiusController : MonoBehaviour
         if (instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(gameObject);  // Make this object persist across scenes
         }
         else
         {
