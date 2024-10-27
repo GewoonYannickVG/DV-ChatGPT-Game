@@ -8,6 +8,7 @@ public class ProximityAudioController : MonoBehaviour
     [SerializeField] private float triggerRadius = 10f;
     [SerializeField] private string volumeParameter = "Volume";
     [SerializeField] private string bassParameter = "LowPassFreq"; // Use a low-pass filter to simulate bass increase
+    private float maxVolume = 0.6f; // Add this line to make the volume adjustable in the Unity editor
 
     private Transform playerTransform;
 
@@ -66,13 +67,13 @@ public class ProximityAudioController : MonoBehaviour
     {
         float proximityFactor = 1 - (distance / triggerRadius);
 
-        audioSource.volume = Mathf.Lerp(0f, 1f, proximityFactor); // Smoothly fade in volume
+        audioSource.volume = Mathf.Lerp(0f, maxVolume, proximityFactor); // Use maxVolume instead of a hardcoded value
         audioMixerGroup.audioMixer.SetFloat(volumeParameter, Mathf.Lerp(-80f, 0f, proximityFactor)); // Adjust volume
         audioMixerGroup.audioMixer.SetFloat(bassParameter, Mathf.Lerp(1000f, 22000f, proximityFactor)); // Adjust low-pass filter to increase bass
 
         // Calculate stereo pan based on the player's position relative to the audio source
         Vector3 direction = playerTransform.position - transform.position;
         float angle = Vector3.SignedAngle(transform.forward, direction, Vector3.up);
-        audioSource.panStereo = Mathf.Clamp(angle / 90f, .75f, -.75f); // Pan based on angle (-1 is left, 1 is right)
+        audioSource.panStereo = Mathf.Clamp(angle / 90f, 0.75f, -0.75f); // Pan based on angle (-0.75 is left, 0.75 is right)
     }
 }
