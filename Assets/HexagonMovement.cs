@@ -37,7 +37,7 @@ public class HexagonMovement : MonoBehaviour
     private bool canDash = true;
     private bool dashTriggered = false;
     private Coroutine fadeCoroutine;
-    private bool isInNoDoubleJumpZone = false;
+    public bool isInNoDoubleJumpZone = false; // Changed to public
 
     // Reference to VolumeController
     private VolumeController volumeController;
