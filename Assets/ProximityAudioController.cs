@@ -11,6 +11,7 @@ public class ProximityAudioController : MonoBehaviour
     private float maxVolume = 0.6f; // Add this line to make the volume adjustable in the Unity editor
 
     private Transform playerTransform;
+    private VolumeController volumeController;
 
     void Start()
     {
@@ -38,6 +39,8 @@ public class ProximityAudioController : MonoBehaviour
         {
             Debug.LogError("AudioMixerGroup is not assigned in ProximityAudioController.");
         }
+
+        volumeController = VolumeController.Instance;
     }
 
     void Update()
@@ -66,8 +69,9 @@ public class ProximityAudioController : MonoBehaviour
     private void AdjustAudioParameters(float distance)
     {
         float proximityFactor = 1 - (distance / triggerRadius);
+        float adjustedVolume = Mathf.Lerp(0f, maxVolume, proximityFactor) * volumeController.GetCurrentVolume();
 
-        audioSource.volume = Mathf.Lerp(0f, maxVolume, proximityFactor); // Use maxVolume instead of a hardcoded value
+        audioSource.volume = adjustedVolume;
         audioMixerGroup.audioMixer.SetFloat(volumeParameter, Mathf.Lerp(-80f, 0f, proximityFactor)); // Adjust volume
         audioMixerGroup.audioMixer.SetFloat(bassParameter, Mathf.Lerp(1000f, 22000f, proximityFactor)); // Adjust low-pass filter to increase bass
 
