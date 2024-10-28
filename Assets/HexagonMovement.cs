@@ -37,6 +37,7 @@ public class HexagonMovement : MonoBehaviour
     private bool canDash = true;
     private bool dashTriggered = false;
     private Coroutine fadeCoroutine;
+    private bool isInNoDoubleJumpZone = false;
 
     // Reference to VolumeController
     private VolumeController volumeController;
@@ -162,7 +163,7 @@ public class HexagonMovement : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (isGrounded || jumpCount < maxJumpCount)
+            if (isGrounded || (jumpCount < maxJumpCount && !isInNoDoubleJumpZone))
             {
                 if (isGrounded)
                 {
@@ -308,7 +309,7 @@ public class HexagonMovement : MonoBehaviour
         }
         else if (other.CompareTag("NoDoubleJumpZone"))
         {
-            jumpCount = 0; // Reset jump count when entering no double jump zone
+            isInNoDoubleJumpZone = true; // Entering no double jump zone
         }
     }
 
@@ -316,7 +317,7 @@ public class HexagonMovement : MonoBehaviour
     {
         if (other.CompareTag("NoDoubleJumpZone"))
         {
-            jumpCount = 1; // Allow one jump after exiting the no double jump zone
+            isInNoDoubleJumpZone = false; // Exiting no double jump zone
         }
     }
 
@@ -325,15 +326,5 @@ public class HexagonMovement : MonoBehaviour
         yield return new WaitForSeconds(0.2f); // Add a delay if needed
 
         SceneTransitionManager.Instance.TransitionToNextScene();
-    }
-
-    public void EnableDoubleJump()
-    {
-        maxJumpCount = 2;
-    }
-
-    public void DisableDoubleJump()
-    {
-        maxJumpCount = 1;
     }
 }

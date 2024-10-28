@@ -2,16 +2,14 @@ using UnityEngine;
 
 public class DoubleJumpZone : MonoBehaviour
 {
-    private HexagonMovement playerMovement;
-
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
-            playerMovement = other.GetComponent<HexagonMovement>();
+            HexagonMovement playerMovement = other.GetComponent<HexagonMovement>();
             if (playerMovement != null)
             {
-                playerMovement.DisableDoubleJump();
+                playerMovement.isInNoDoubleJumpZone = true; // Entering no double jump zone
             }
         }
     }
@@ -20,9 +18,10 @@ public class DoubleJumpZone : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            HexagonMovement playerMovement = other.GetComponent<HexagonMovement>();
             if (playerMovement != null)
             {
-                playerMovement.EnableDoubleJump();
+                playerMovement.isInNoDoubleJumpZone = false; // Exiting no double jump zone
             }
         }
     }
