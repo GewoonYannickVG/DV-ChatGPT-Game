@@ -15,7 +15,18 @@ public class OneWayPlatform : MonoBehaviour
         {
             if (collision.relativeVelocity.y > 0)
             {
-                PlatformPassThrough(collision.gameObject);
+                Physics2D.IgnoreCollision(collision.collider, platformCollider, true);
+            }
+        }
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            if (collision.relativeVelocity.y <= 0)
+            {
+                Physics2D.IgnoreCollision(collision.collider, platformCollider, false);
             }
         }
     }
@@ -24,17 +35,7 @@ public class OneWayPlatform : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            PlatformSolid(collision.gameObject);
+            Physics2D.IgnoreCollision(collision.collider, platformCollider, false);
         }
-    }
-
-    private void PlatformPassThrough(GameObject player)
-    {
-        Physics2D.IgnoreCollision(player.GetComponent<Collider2D>(), platformCollider, true);
-    }
-
-    private void PlatformSolid(GameObject player)
-    {
-        Physics2D.IgnoreCollision(player.GetComponent<Collider2D>(), platformCollider, false);
     }
 }

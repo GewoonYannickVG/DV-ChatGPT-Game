@@ -97,6 +97,8 @@ public class HexagonMovement : MonoBehaviour
         {
             PerformDash();
         }
+
+        HandlePlatformCollision();
     }
 
     private void GroundCheck()
@@ -212,6 +214,19 @@ public class HexagonMovement : MonoBehaviour
         }
 
         StartCoroutine(ShakeCamera());
+    }
+
+    private void HandlePlatformCollision()
+    {
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 1f, groundLayer);
+        if (hit.collider != null && hit.collider.CompareTag("OneWayPlatform"))
+        {
+            Physics2D.IgnoreCollision(GetComponent<Collider2D>(), hit.collider, true);
+        }
+        else
+        {
+            Physics2D.IgnoreCollision(GetComponent<Collider2D>(), hit.collider, false);
+        }
     }
 
     private void PlayRollingAudio()
