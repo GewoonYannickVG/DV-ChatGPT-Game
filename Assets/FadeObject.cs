@@ -33,25 +33,17 @@ public class FadeObject2D : MonoBehaviour
             // Fade out
             yield return Fade(0f);
 
-            // Disable collider
-            boxCollider.enabled = false;
-
             // Wait
             yield return new WaitForSeconds(waitDuration);
 
             // Fade in
             yield return Fade(1f);
-
-            // Enable collider at 0.5 opacity
-            boxCollider.enabled = true;
-
-            // Continue fading in to full opacity
-            yield return Fade(1f, 0.5f);
         }
     }
 
-    private IEnumerator Fade(float targetOpacity, float startOpacity = 1f)
+    private IEnumerator Fade(float targetOpacity)
     {
+        float startOpacity = spriteRenderer.color.a;
         float elapsedTime = 0f;
 
         while (elapsedTime < fadeDuration)
@@ -70,5 +62,8 @@ public class FadeObject2D : MonoBehaviour
         Color color = originalColor;
         color.a = alpha;
         spriteRenderer.color = color;
+
+        // Disable collider when opacity is below 0.4, enable otherwise
+        boxCollider.enabled = alpha >= 0.4f;
     }
 }

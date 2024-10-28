@@ -306,6 +306,18 @@ public class HexagonMovement : MonoBehaviour
         {
             StartCoroutine(FadeToBlackAndSwitchScene());
         }
+        else if (other.CompareTag("NoDoubleJumpZone"))
+        {
+            jumpCount = 0; // Reset jump count when entering no double jump zone
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("NoDoubleJumpZone"))
+        {
+            jumpCount = 1; // Allow one jump after exiting the no double jump zone
+        }
     }
 
     private IEnumerator FadeToBlackAndSwitchScene()
@@ -313,5 +325,15 @@ public class HexagonMovement : MonoBehaviour
         yield return new WaitForSeconds(0.2f); // Add a delay if needed
 
         SceneTransitionManager.Instance.TransitionToNextScene();
+    }
+
+    public void EnableDoubleJump()
+    {
+        maxJumpCount = 2;
+    }
+
+    public void DisableDoubleJump()
+    {
+        maxJumpCount = 1;
     }
 }
