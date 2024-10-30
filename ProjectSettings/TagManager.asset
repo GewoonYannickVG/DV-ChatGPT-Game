@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Diamond
   - Wall
+  - OneWayPlatform
   layers:
   - Default
   - TransparentFX
@@ -15,7 +16,7 @@ TagManager:
   - UI
   - Post
   - Ground
-  - 
+  - OneWayPlatform
   - 
   - 
   - 

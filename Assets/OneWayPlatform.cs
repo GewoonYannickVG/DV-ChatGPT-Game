@@ -1,41 +1,59 @@
 using UnityEngine;
 
-public class OneWayPlatform : MonoBehaviour
+public class OneWayPlatformControl : MonoBehaviour
 {
-    private Collider2D platformCollider;
+    private BoxCollider2D platformCollider;      // Main platform collider
+    public BoxCollider2D detectionTrigger;       // Trigger collider below the platform
+    private bool isIgnoringCollision = false;    // Track if collision is currently ignored
 
-    void Start()
+    private void Start()
     {
-        platformCollider = GetComponent<Collider2D>();
+        // Get the main platform collider (non-trigger)
+        platformCollider = GetComponent<BoxCollider2D>();
+
+        if (detectionTrigger == null)
+        {
+            Debug.LogError("Please assign a detection trigger collider in the Inspector.");
+        }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.CompareTag("Player"))
         {
-            if (collision.relativeVelocity.y > 0)
+            Rigidbody2D playerRb = collision.GetComponent<Rigidbody2D>();
+            if (playerRb != null && playerRb.velocity.y > 0)
             {
-                Physics2D.IgnoreCollision(collision.collider, platformCollider, true);
+                // If player is moving upwards, ignore collision temporarily
+                Physics2D.IgnoreCollision(platformCollider, collision, true);
+                isIgnoringCollision = true;
             }
         }
     }
 
-    void OnCollisionStay2D(Collision2D collision)
+    private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.CompareTag("Player"))
         {
-            if (collision.relativeVelocity.y <= 0)
-            {
-                Physics2D.IgnoreCollision(collision.collider, platformCollider, false);
-            }
+            StartCoroutine(ResetCollision(collision));
         }
     }
 
-    void OnCollisionExit2D(Collision2D collision)
+    private void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.collider.CompareTag("Player"))
         {
-            Physics2D.IgnoreCollision(collision.collider, platformCollider, false);
+            StartCoroutine(ResetCollision(collision.collider));
+        }
+    }
+
+    private System.Collections.IEnumerator ResetCollision(Collider2D collision)
+    {
+        if (isIgnoringCollision)
+        {
+            yield return new WaitForSeconds(0.1f);  // Short delay to allow player to fully exit platform
+            Physics2D.IgnoreCollision(platformCollider, collision, false);
+            isIgnoringCollision = false;
         }
     }
 }
