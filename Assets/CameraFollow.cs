@@ -13,13 +13,17 @@ public class CameraFollow : MonoBehaviour
 
     [Header("Field of View Settings")]
     [SerializeField] private float normalFOV = 87f; // Normal FOV when shift is not held
-    [SerializeField] private float zoomedFOV = 95f; // FOV when shift is held
-    [SerializeField] private float fovSmoothTime = 0.2f; // Smooth time for FOV transition
+    [SerializeField] private float shiftZoomedFOV = 95f; // FOV when shift is held
+    [SerializeField] private float cZoomedFOV = 60f; // FOV when 'C' is held
+    [SerializeField] private float fovSmoothTime = 0.2f; // Smooth time for shift FOV transition
+    [SerializeField] private float cFovSmoothTime = 0.1f; // Smooth time for 'C' FOV transition
+    [SerializeField] private float cQuickZoomOutTime = 0.1f; // Quick zoom out time for 'C'
 
     private Camera cameraComponent; // Reference to the camera component
     private float targetFOV; // Target FOV value
     private float currentFOV; // Current FOV value
     private Vector3 velocity = Vector3.zero; // Velocity for SmoothDamp
+    private bool isZoomingC = false; // Flag to check if 'C' is held
 
     private void Awake()
     {
@@ -50,18 +54,31 @@ public class CameraFollow : MonoBehaviour
         Vector3 newPosition = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothTime);
         transform.position = newPosition;
 
-        // Check if Shift is being held down
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        // Determine the target FOV and smooth time based on input
+        if (Input.GetKey(KeyCode.C))
         {
-            targetFOV = zoomedFOV; // Set target FOV to zoomed FOV
+            targetFOV = cZoomedFOV; // Set target FOV to 'C' zoomed FOV
+            isZoomingC = true;
+        }
+        else if (isZoomingC)
+        {
+            targetFOV = normalFOV; // Set target FOV back to normal
+            isZoomingC = false;
+        }
+        else if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            targetFOV = shiftZoomedFOV; // Set target FOV to shift zoomed FOV
         }
         else
         {
             targetFOV = normalFOV; // Set target FOV back to normal
         }
 
+        // Determine the appropriate FOV smooth time based on the key press
+        float currentFovSmoothTime = isZoomingC ? cFovSmoothTime : (Input.GetKey(KeyCode.C) ? cFovSmoothTime : cQuickZoomOutTime);
+
         // Smoothly transition the current FOV to the target FOV
-        currentFOV = Mathf.Lerp(currentFOV, targetFOV, Time.deltaTime / fovSmoothTime);
+        currentFOV = Mathf.Lerp(currentFOV, targetFOV, Time.deltaTime / currentFovSmoothTime);
         cameraComponent.fieldOfView = currentFOV; // Apply the current FOV to the camera
     }
 }
