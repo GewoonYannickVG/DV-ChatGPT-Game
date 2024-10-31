@@ -17,7 +17,6 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float cZoomedFOV = 60f; // FOV when 'C' is held
     [SerializeField] private float fovSmoothTime = 0.2f; // Smooth time for shift FOV transition
     [SerializeField] private float cFovSmoothTime = 0.1f; // Smooth time for 'C' FOV transition
-    [SerializeField] private float cQuickZoomOutTime = 0.1f; // Quick zoom out time for 'C'
 
     private Camera cameraComponent; // Reference to the camera component
     private float targetFOV; // Target FOV value
@@ -74,8 +73,8 @@ public class CameraFollow : MonoBehaviour
             targetFOV = normalFOV; // Set target FOV back to normal
         }
 
-        // Determine the appropriate FOV smooth time based on the key press
-        float currentFovSmoothTime = isZoomingC ? cFovSmoothTime : (Input.GetKey(KeyCode.C) ? cFovSmoothTime : cQuickZoomOutTime);
+        // Use the same smooth time for both zooming in and out
+        float currentFovSmoothTime = isZoomingC ? cFovSmoothTime : fovSmoothTime;
 
         // Smoothly transition the current FOV to the target FOV
         currentFOV = Mathf.Lerp(currentFOV, targetFOV, Time.deltaTime / currentFovSmoothTime);
