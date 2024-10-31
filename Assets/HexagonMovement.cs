@@ -219,13 +219,15 @@ public class HexagonMovement : MonoBehaviour
     private void HandlePlatformCollision()
     {
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 1f, groundLayer);
+        Collider2D collider = GetComponent<Collider2D>();
+
         if (hit.collider != null && hit.collider.CompareTag("OneWayPlatform"))
         {
-            Physics2D.IgnoreCollision(GetComponent<Collider2D>(), hit.collider, true);
+            Physics2D.IgnoreCollision(collider, hit.collider, true);
         }
-        else
+        else if (hit.collider != null)
         {
-            Physics2D.IgnoreCollision(GetComponent<Collider2D>(), hit.collider, false);
+            Physics2D.IgnoreCollision(collider, hit.collider, false);
         }
     }
 

@@ -41,6 +41,10 @@ public class ProximityAudioController : MonoBehaviour
         }
 
         volumeController = VolumeController.Instance;
+        if (volumeController == null)
+        {
+            Debug.LogError("VolumeController instance is not found.");
+        }
     }
 
     void Update()
@@ -50,7 +54,7 @@ public class ProximityAudioController : MonoBehaviour
         float distance = Vector3.Distance(transform.position, playerTransform.position);
         if (distance <= triggerRadius)
         {
-            if (!audioSource.isPlaying)
+            if (audioSource != null && !audioSource.isPlaying)
             {
                 audioSource.loop = true;
                 audioSource.Play();
@@ -59,7 +63,7 @@ public class ProximityAudioController : MonoBehaviour
         }
         else
         {
-            if (audioSource.isPlaying)
+            if (audioSource != null && audioSource.isPlaying)
             {
                 audioSource.Stop();
             }
@@ -68,12 +72,18 @@ public class ProximityAudioController : MonoBehaviour
 
     private void AdjustAudioParameters(float distance)
     {
+        if (audioSource == null || audioMixerGroup == null || volumeController == null) return;
+
         float proximityFactor = 1 - (distance / triggerRadius);
         float adjustedVolume = Mathf.Lerp(0f, maxVolume, proximityFactor) * volumeController.GetCurrentVolume();
 
         audioSource.volume = adjustedVolume;
-        audioMixerGroup.audioMixer.SetFloat(volumeParameter, Mathf.Lerp(-80f, 0f, proximityFactor)); // Adjust volume
-        audioMixerGroup.audioMixer.SetFloat(bassParameter, Mathf.Lerp(1000f, 22000f, proximityFactor)); // Adjust low-pass filter to increase bass
+
+        if (audioMixerGroup.audioMixer != null)
+        {
+            audioMixerGroup.audioMixer.SetFloat(volumeParameter, Mathf.Lerp(-80f, 0f, proximityFactor)); // Adjust volume
+            audioMixerGroup.audioMixer.SetFloat(bassParameter, Mathf.Lerp(1000f, 22000f, proximityFactor)); // Adjust low-pass filter to increase bass
+        }
 
         // Calculate stereo pan based on the player's position relative to the audio source
         Vector3 direction = playerTransform.position - transform.position;
