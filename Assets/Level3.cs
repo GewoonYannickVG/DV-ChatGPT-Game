@@ -1,21 +1,21 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using UnityEngine.SceneManagement; // Add this line to access SceneManager
+using UnityEngine.SceneManagement;
 
 public class Level3 : MonoBehaviour
 {
     public Transform focusObject;
     public Transform cubePrefab;
     public Vector3 cubeSpawnPosition;
-    public AudioSource backgroundMusicSource; // Changed to AudioSource
-    public AudioSource touchSoundSource; // Add this AudioSource for touch sound
+    public AudioSource backgroundMusicSource;
+    public AudioSource touchSoundSource;
     public Image displayImage;
     public Transform wall;
     public Image background;
-    public Color wallColor = Color.red; // Expose the wall color as a public field
+    public Color wallColor = Color.red;
 
-    public float cubeMoveSpeed = 2f; // Define the initial cubeMoveSpeed variable
+    public float cubeMoveSpeed = 2f;
 
     private Camera mainCamera;
     private Transform player;
@@ -29,7 +29,6 @@ public class Level3 : MonoBehaviour
         player = GameObject.FindWithTag("Player").transform;
         displayImage.enabled = false;
 
-        // Apply the material color to the wall's renderer
         Renderer wallRenderer = wall.GetComponent<Renderer>();
         if (wallRenderer != null)
         {
@@ -117,11 +116,10 @@ public class Level3 : MonoBehaviour
         direction.y = 0;
         cube.position += direction * cubeMoveSpeed * Time.deltaTime;
 
-        // Check for collision with player
         if (Vector3.Distance(cube.position, player.position) < 0.5f)
         {
-            StartCoroutine(OnCubeTouched()); // Call the new method when the cube is touched
-            cube = null; // Stop moving the cube
+            StartCoroutine(OnCubeTouched());
+            cube = null;
         }
     }
 
@@ -193,15 +191,31 @@ public class Level3 : MonoBehaviour
         backgroundMusicSource.volume = 1.5f;
     }
 
+    IEnumerator FadeOutAudio(float duration)
+    {
+        float startVolume = backgroundMusicSource.volume;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            backgroundMusicSource.volume = Mathf.Lerp(startVolume, 0f, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        backgroundMusicSource.volume = 0f;
+        backgroundMusicSource.Stop();
+    }
+
     IEnumerator OnCubeTouched()
     {
-        // Play the touch sound
+        yield return StartCoroutine(FadeOutAudio(1f));
+
         if (touchSoundSource != null)
         {
             touchSoundSource.Play();
         }
 
-        // Fade in the display image
         displayImage.enabled = true;
         Color imgColor = displayImage.color;
         imgColor.a = 0;
@@ -221,10 +235,16 @@ public class Level3 : MonoBehaviour
         imgColor.a = 1;
         displayImage.color = imgColor;
 
-        // Wait for 5 seconds before reloading the scene
         yield return new WaitForSeconds(5f);
 
-        // Reload the scene
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.CompareTag("Player"))
+        {
+            StartCoroutine(OnCubeTouched());
+        }
     }
 }
