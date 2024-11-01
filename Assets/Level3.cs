@@ -74,7 +74,7 @@ public class Level3 : MonoBehaviour
 
         mainCamera.transform.position = zoomPosition;
 
-        float shakeDuration = 2f;
+        float shakeDuration = 1.5f;
         float shakeMagnitude = 0.1f;
         elapsedTime = 0f;
 
