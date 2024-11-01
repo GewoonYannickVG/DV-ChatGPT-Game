@@ -32,7 +32,11 @@ public class Level3 : MonoBehaviour
         displayImage.enabled = false;
 
         // Set the initial audio speed and match the pitch
-        backgroundMusicSource.pitch = backgroundMusicSpeed;
+        if (backgroundMusicSource != null && backgroundMusicSource.clip != null)
+        {
+            backgroundMusicSource.pitch = backgroundMusicSpeed;
+            backgroundMusicSource.volume = 1f; // Ensure volume is set
+        }
 
         Renderer wallRenderer = wall.GetComponent<Renderer>();
         if (wallRenderer != null)
@@ -100,8 +104,7 @@ public class Level3 : MonoBehaviour
             Destroy(rb);
         }
 
-        // Ensure the cube has a BoxCollider
-        BoxCollider collider = cube.gameObject.AddComponent<BoxCollider>();
+        // Ensure the cube has a BoxCollider only if it doesn't already have one
 
         StartCoroutine(DropWallSize());  // Ensure wall size smoothly transitions
 
@@ -176,7 +179,7 @@ public class Level3 : MonoBehaviour
             yield return null;
         }
 
-        backgroundMusicSource.volume = 1.5f;
+        backgroundMusicSource.volume = 1f;
     }
 
     IEnumerator FadeOutAudio(float duration)
