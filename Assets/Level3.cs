@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.SceneManagement; // Add this line to access SceneManager
 
 public class Level3 : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class Level3 : MonoBehaviour
     public Transform cubePrefab;
     public Vector3 cubeSpawnPosition;
     public AudioSource backgroundMusicSource; // Changed to AudioSource
+    public AudioSource touchSoundSource; // Add this AudioSource for touch sound
     public Image displayImage;
     public Transform wall;
     public Image background;
@@ -50,10 +52,8 @@ public class Level3 : MonoBehaviour
 
     IEnumerator PlayCutscene()
     {
-        // Step 1: Wait for 3 seconds while camera stays on the player
         yield return new WaitForSeconds(3f);
 
-        // Step 2: Smoothly zoom in on the object for shaking
         float zoomDuration = 2f;
         Vector3 originalPosition = mainCamera.transform.position;
         Vector3 zoomPosition = new Vector3(focusObject.position.x, focusObject.position.y, mainCamera.transform.position.z);
@@ -68,7 +68,6 @@ public class Level3 : MonoBehaviour
 
         mainCamera.transform.position = zoomPosition;
 
-        // Step 3: Shake the camera for 2 seconds and start audio fade-in
         float shakeDuration = 2f;
         float shakeMagnitude = 0.1f;
         elapsedTime = 0f;
@@ -86,24 +85,18 @@ public class Level3 : MonoBehaviour
 
         mainCamera.transform.position = zoomPosition;
 
-        // Step 4: Make the object disappear and spawn a cube
         focusObject.gameObject.SetActive(false);
         cube = Instantiate(cubePrefab, cubeSpawnPosition, Quaternion.identity);
 
-        // Remove cube's physics
         Rigidbody rb = cube.GetComponent<Rigidbody>();
         if (rb != null)
         {
             Destroy(rb);
         }
 
-        // Drop the wall's Y size to 0 smoothly
         StartCoroutine(DropWallSize());
-
-        // Change background color from black to red smoothly but quickly
         StartCoroutine(ChangeBackgroundColor());
 
-        // Step 5: Smoothly return the camera to the player
         elapsedTime = 0f;
 
         while (elapsedTime < zoomDuration)
@@ -114,27 +107,27 @@ public class Level3 : MonoBehaviour
         }
 
         mainCamera.transform.position = originalPosition;
-        cameraReturned = true; // Set the flag to true when the camera has returned
-        StartCoroutine(IncreaseCubeSpeed()); // Start increasing the cube's speed
+        cameraReturned = true;
+        StartCoroutine(IncreaseCubeSpeed());
     }
 
     void MoveCubeTowardsPlayer()
     {
         Vector3 direction = (player.position - cube.position).normalized;
-        direction.y = 0; // Lock movement on the Y axis
+        direction.y = 0;
         cube.position += direction * cubeMoveSpeed * Time.deltaTime;
 
         // Check for collision with player
         if (Vector3.Distance(cube.position, player.position) < 0.5f)
         {
-            displayImage.enabled = true;
+            StartCoroutine(OnCubeTouched()); // Call the new method when the cube is touched
             cube = null; // Stop moving the cube
         }
     }
 
     IEnumerator DropWallSize()
     {
-        float duration = 1f; // Duration to drop the wall size
+        float duration = 1f;
         float elapsedTime = 0f;
         Vector3 originalScale = wall.localScale;
         Vector3 targetScale = new Vector3(originalScale.x, 0f, originalScale.z);
@@ -151,7 +144,7 @@ public class Level3 : MonoBehaviour
 
     IEnumerator ChangeBackgroundColor()
     {
-        float duration = 0.5f; // Duration to change the color
+        float duration = 0.5f;
         float elapsedTime = 0f;
         Color originalColor = Color.black;
         Color targetColor = Color.red;
@@ -168,10 +161,10 @@ public class Level3 : MonoBehaviour
 
     IEnumerator IncreaseCubeSpeed()
     {
-        float duration = 3f; // Duration to increase speed
+        float duration = 3f;
         float elapsedTime = 0f;
         float initialSpeed = 2f;
-        float targetSpeed = cubeMoveSpeed; // Use the cubeMoveSpeed variable
+        float targetSpeed = cubeMoveSpeed;
 
         while (elapsedTime < duration)
         {
@@ -198,5 +191,40 @@ public class Level3 : MonoBehaviour
         }
 
         backgroundMusicSource.volume = 1.5f;
+    }
+
+    IEnumerator OnCubeTouched()
+    {
+        // Play the touch sound
+        if (touchSoundSource != null)
+        {
+            touchSoundSource.Play();
+        }
+
+        // Fade in the display image
+        displayImage.enabled = true;
+        Color imgColor = displayImage.color;
+        imgColor.a = 0;
+        displayImage.color = imgColor;
+
+        float fadeDuration = 1f;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < fadeDuration)
+        {
+            imgColor.a = Mathf.Lerp(0, 1, elapsedTime / fadeDuration);
+            displayImage.color = imgColor;
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        imgColor.a = 1;
+        displayImage.color = imgColor;
+
+        // Wait for 5 seconds before reloading the scene
+        yield return new WaitForSeconds(5f);
+
+        // Reload the scene
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
