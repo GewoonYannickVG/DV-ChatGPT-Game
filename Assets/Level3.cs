@@ -7,7 +7,7 @@ public class Level3 : MonoBehaviour
     public Transform focusObject;
     public Transform cubePrefab;
     public Vector3 cubeSpawnPosition;
-    public AudioClip backgroundMusic;
+    public AudioSource backgroundMusicSource; // Changed to AudioSource
     public Image displayImage;
     public Transform wall;
     public Image background;
@@ -17,7 +17,6 @@ public class Level3 : MonoBehaviour
 
     private Camera mainCamera;
     private Transform player;
-    private AudioSource audioSource;
     private bool cutscenePlayed = false;
     private Transform cube;
     private bool cameraReturned = false;
@@ -26,7 +25,6 @@ public class Level3 : MonoBehaviour
     {
         mainCamera = Camera.main;
         player = GameObject.FindWithTag("Player").transform;
-        audioSource = GetComponent<AudioSource>();
         displayImage.enabled = false;
 
         // Apply the material color to the wall's renderer
@@ -70,10 +68,12 @@ public class Level3 : MonoBehaviour
 
         mainCamera.transform.position = zoomPosition;
 
-        // Step 3: Shake the camera for 2 seconds
+        // Step 3: Shake the camera for 2 seconds and start audio fade-in
         float shakeDuration = 2f;
         float shakeMagnitude = 0.1f;
         elapsedTime = 0f;
+
+        StartCoroutine(FadeInAudio(shakeDuration));
 
         while (elapsedTime < shakeDuration)
         {
@@ -116,8 +116,6 @@ public class Level3 : MonoBehaviour
         mainCamera.transform.position = originalPosition;
         cameraReturned = true; // Set the flag to true when the camera has returned
         StartCoroutine(IncreaseCubeSpeed()); // Start increasing the cube's speed
-        audioSource.clip = backgroundMusic;
-        audioSource.Play();
     }
 
     void MoveCubeTowardsPlayer()
@@ -170,9 +168,9 @@ public class Level3 : MonoBehaviour
 
     IEnumerator IncreaseCubeSpeed()
     {
-        float duration = 10f; // Duration to increase speed
+        float duration = 3f; // Duration to increase speed
         float elapsedTime = 0f;
-        float initialSpeed = 0f;
+        float initialSpeed = 2f;
         float targetSpeed = cubeMoveSpeed; // Use the cubeMoveSpeed variable
 
         while (elapsedTime < duration)
@@ -183,5 +181,22 @@ public class Level3 : MonoBehaviour
         }
 
         cubeMoveSpeed = targetSpeed;
+    }
+
+    IEnumerator FadeInAudio(float duration)
+    {
+        backgroundMusicSource.volume = 0f;
+        backgroundMusicSource.Play();
+
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            backgroundMusicSource.volume = Mathf.Lerp(0f, 1f, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        backgroundMusicSource.volume = 1.5f;
     }
 }
