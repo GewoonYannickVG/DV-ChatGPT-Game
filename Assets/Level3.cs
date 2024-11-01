@@ -172,8 +172,8 @@ public class Level3 : MonoBehaviour
     {
         float duration = 10f; // Duration to increase speed
         float elapsedTime = 0f;
-        float initialSpeed = cubeMoveSpeed;
-        float targetSpeed = 5f; // Target speed after 10 seconds
+        float initialSpeed = 0f;
+        float targetSpeed = cubeMoveSpeed; // Use the cubeMoveSpeed variable
 
         while (elapsedTime < duration)
         {
