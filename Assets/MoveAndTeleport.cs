@@ -7,16 +7,19 @@ public class MoveAndTeleport : MonoBehaviour
     public Direction moveDirection = Direction.Horizontal;
     public float moveDistance = 5f;
     public float moveSpeed = 2f;
-    public Vector3 teleportPosition; // New field for teleportation coordinates
+    public Vector3 teleportPosition;
 
     private Vector3 startPosition;
     private bool movingForward = true;
+    private FadeObject2D fadeObject;
 
     private void Start()
     {
         startPosition = transform.position;
         BoxCollider2D boxCollider = gameObject.AddComponent<BoxCollider2D>();
         boxCollider.isTrigger = true;
+
+        fadeObject = GetComponent<FadeObject2D>();
     }
 
     private void Update()
@@ -38,7 +41,7 @@ public class MoveAndTeleport : MonoBehaviour
             if (Vector3.Distance(startPosition, transform.position) >= moveDistance)
                 movingForward = !movingForward;
         }
-        else // Vertical movement
+        else
         {
             if (movingForward)
                 transform.Translate(Vector3.up * moveAmount);
@@ -52,7 +55,7 @@ public class MoveAndTeleport : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player") && fadeObject.CurrentOpacity > 0.4f)
         {
             collision.gameObject.transform.position = teleportPosition;
         }

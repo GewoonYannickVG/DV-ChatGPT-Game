@@ -66,4 +66,7 @@ public class FadeObject2D : MonoBehaviour
         // Disable collider when opacity is below 0.4, enable otherwise
         boxCollider.enabled = alpha >= 0.4f;
     }
+
+    // Public property to access the current opacity
+    public float CurrentOpacity => spriteRenderer.color.a;
 }
