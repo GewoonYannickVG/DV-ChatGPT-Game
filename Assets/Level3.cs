@@ -13,7 +13,7 @@ public class Level3 : MonoBehaviour
     public Image displayImage;
     public Transform wall;
     public Image background;
-    public float backgroundMusicSpeed = 1f; // New variable for setting audio speed
+    public float backgroundMusicSpeed = 1f;
     public float cubeMoveSpeed = 2f;
 
     private Camera mainCamera;
@@ -21,7 +21,7 @@ public class Level3 : MonoBehaviour
     private bool cutscenePlayed = false;
     private Transform cube;
     private bool cameraReturned = false;
-
+    private Vector3 playerStartPosition;
     private float[] audioSamples = new float[64];
     private float redIntensity = 0f;
 
@@ -30,18 +30,18 @@ public class Level3 : MonoBehaviour
         mainCamera = Camera.main;
         player = GameObject.FindWithTag("Player").transform;
         displayImage.enabled = false;
+        playerStartPosition = player.position;  // Store the player's start position
 
-        // Set the initial audio speed and match the pitch
         if (backgroundMusicSource != null && backgroundMusicSource.clip != null)
         {
             backgroundMusicSource.pitch = backgroundMusicSpeed;
-            backgroundMusicSource.volume = 1f; // Ensure volume is set
+            backgroundMusicSource.volume = 1f;
         }
 
         Renderer wallRenderer = wall.GetComponent<Renderer>();
         if (wallRenderer != null)
         {
-            wallRenderer.material.color = Color.white;  // Ensure wall is not red
+            wallRenderer.material.color = Color.white;
         }
     }
 
@@ -55,6 +55,7 @@ public class Level3 : MonoBehaviour
         else if (cube != null && cameraReturned)
         {
             MoveCubeTowardsPlayer();
+            CheckCollisionByDistance();
         }
 
         UpdateBackgroundColor();
@@ -104,9 +105,7 @@ public class Level3 : MonoBehaviour
             Destroy(rb);
         }
 
-        // Ensure the cube has a BoxCollider only if it doesn't already have one
-
-        StartCoroutine(DropWallSize());  // Ensure wall size smoothly transitions
+        StartCoroutine(DropWallSize());
 
         elapsedTime = 0f;
 
@@ -129,6 +128,18 @@ public class Level3 : MonoBehaviour
         Vector3 direction = (player.position - cube.position).normalized;
         direction.y = 0;
         cube.position += direction * cubeMoveSpeed * Time.deltaTime;
+    }
+
+    void CheckCollisionByDistance()
+    {
+        if (cube == null || player == null) return;
+
+        float distance = Vector3.Distance(cube.position, player.position);
+
+        if (distance <= 5f)  // Adjust this value if needed
+        {
+            StartCoroutine(OnCubeTouched());
+        }
     }
 
     IEnumerator DropWallSize()
@@ -228,7 +239,17 @@ public class Level3 : MonoBehaviour
 
         yield return new WaitForSeconds(5f);
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // Reset cube speed buildup
+        cubeMoveSpeed = 2f;
+
+        // Teleport the cube back to its original position
+        cube.position = cubeSpawnPosition;
+
+        // Teleport the player back to its original position
+        player.position = playerStartPosition;
+
+        // Restart the background audio
+        StartCoroutine(FadeInAudio(1f));
     }
 
     void OnCollisionEnter(Collision collision)
@@ -250,7 +271,7 @@ public class Level3 : MonoBehaviour
         }
 
         averageAmplitude /= audioSamples.Length;
-        redIntensity = Mathf.Lerp(redIntensity, averageAmplitude * 25f, Time.deltaTime * 15f);  // Adjusted threshold and smoothness
+        redIntensity = Mathf.Lerp(redIntensity, averageAmplitude * 25f, Time.deltaTime * 15f);
         redIntensity = Mathf.Clamp01(redIntensity);
 
         Color currentColor = background.color;
