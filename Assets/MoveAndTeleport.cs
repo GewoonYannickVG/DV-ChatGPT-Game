@@ -1,6 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider2D))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class MoveAndTeleport : MonoBehaviour
 {
     public enum Direction { Horizontal, Vertical }
@@ -12,12 +13,17 @@ public class MoveAndTeleport : MonoBehaviour
     private Vector3 startPosition;
     private bool movingForward = true;
     private FadeObject2D fadeObject;
+    private Rigidbody2D rb;
 
     private void Start()
     {
         startPosition = transform.position;
-        BoxCollider2D boxCollider = gameObject.AddComponent<BoxCollider2D>();
+        BoxCollider2D boxCollider = GetComponent<BoxCollider2D>();
         boxCollider.isTrigger = true;
+
+        rb = GetComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         fadeObject = GetComponent<FadeObject2D>();
     }
@@ -55,9 +61,12 @@ public class MoveAndTeleport : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Player") && fadeObject.CurrentOpacity > 0.4f)
+        if (collision.gameObject.CompareTag("Player"))
         {
-            collision.gameObject.transform.position = teleportPosition;
+            if (fadeObject == null || fadeObject.CurrentOpacity > 0.4f)
+            {
+                collision.gameObject.transform.position = teleportPosition;
+            }
         }
     }
 }
