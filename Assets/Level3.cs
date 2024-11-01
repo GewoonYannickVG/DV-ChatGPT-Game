@@ -13,7 +13,6 @@ public class Level3 : MonoBehaviour
     public Image displayImage;
     public Transform wall;
     public Image background;
-    public Color wallColor = Color.red;
 
     public float cubeMoveSpeed = 2f;
 
@@ -22,6 +21,9 @@ public class Level3 : MonoBehaviour
     private bool cutscenePlayed = false;
     private Transform cube;
     private bool cameraReturned = false;
+
+    private float[] audioSamples = new float[64];
+    private float redIntensity = 0f;
 
     void Start()
     {
@@ -32,7 +34,7 @@ public class Level3 : MonoBehaviour
         Renderer wallRenderer = wall.GetComponent<Renderer>();
         if (wallRenderer != null)
         {
-            wallRenderer.material.color = wallColor;
+            wallRenderer.material.color = Color.white;  // Ensure wall is not red
         }
     }
 
@@ -47,6 +49,8 @@ public class Level3 : MonoBehaviour
         {
             MoveCubeTowardsPlayer();
         }
+
+        UpdateBackgroundColor();
     }
 
     IEnumerator PlayCutscene()
@@ -93,8 +97,10 @@ public class Level3 : MonoBehaviour
             Destroy(rb);
         }
 
-        StartCoroutine(DropWallSize());
-        StartCoroutine(ChangeBackgroundColor());
+        // Ensure the cube has a BoxCollider
+        BoxCollider collider = cube.gameObject.AddComponent<BoxCollider>();
+
+        StartCoroutine(DropWallSize());  // Ensure wall size smoothly transitions
 
         elapsedTime = 0f;
 
@@ -112,15 +118,11 @@ public class Level3 : MonoBehaviour
 
     void MoveCubeTowardsPlayer()
     {
+        if (cube == null || player == null) return;
+
         Vector3 direction = (player.position - cube.position).normalized;
         direction.y = 0;
         cube.position += direction * cubeMoveSpeed * Time.deltaTime;
-
-        if (Vector3.Distance(cube.position, player.position) < 0.5f)
-        {
-            StartCoroutine(OnCubeTouched());
-            cube = null;
-        }
     }
 
     IEnumerator DropWallSize()
@@ -138,23 +140,6 @@ public class Level3 : MonoBehaviour
         }
 
         wall.localScale = targetScale;
-    }
-
-    IEnumerator ChangeBackgroundColor()
-    {
-        float duration = 0.5f;
-        float elapsedTime = 0f;
-        Color originalColor = Color.black;
-        Color targetColor = Color.red;
-
-        while (elapsedTime < duration)
-        {
-            background.color = Color.Lerp(originalColor, targetColor, elapsedTime / duration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        background.color = targetColor;
     }
 
     IEnumerator IncreaseCubeSpeed()
@@ -246,5 +231,24 @@ public class Level3 : MonoBehaviour
         {
             StartCoroutine(OnCubeTouched());
         }
+    }
+
+    void UpdateBackgroundColor()
+    {
+        backgroundMusicSource.GetSpectrumData(audioSamples, 0, FFTWindow.BlackmanHarris);
+        float averageAmplitude = 0f;
+
+        for (int i = 0; i < audioSamples.Length; i++)
+        {
+            averageAmplitude += audioSamples[i];
+        }
+
+        averageAmplitude /= audioSamples.Length;
+        redIntensity = Mathf.Lerp(redIntensity, averageAmplitude * 25f, Time.deltaTime * 7f);  // Adjusted threshold and smoothness
+        redIntensity = Mathf.Clamp01(redIntensity);
+
+        Color currentColor = background.color;
+        currentColor.r = redIntensity;
+        background.color = currentColor;
     }
 }
