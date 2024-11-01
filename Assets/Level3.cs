@@ -13,7 +13,7 @@ public class Level3 : MonoBehaviour
     public Image displayImage;
     public Transform wall;
     public Image background;
-
+    public float backgroundMusicSpeed = 1f; // New variable for setting audio speed
     public float cubeMoveSpeed = 2f;
 
     private Camera mainCamera;
@@ -30,6 +30,9 @@ public class Level3 : MonoBehaviour
         mainCamera = Camera.main;
         player = GameObject.FindWithTag("Player").transform;
         displayImage.enabled = false;
+
+        // Set the initial audio speed and match the pitch
+        backgroundMusicSource.pitch = backgroundMusicSpeed;
 
         Renderer wallRenderer = wall.GetComponent<Renderer>();
         if (wallRenderer != null)
@@ -244,7 +247,7 @@ public class Level3 : MonoBehaviour
         }
 
         averageAmplitude /= audioSamples.Length;
-        redIntensity = Mathf.Lerp(redIntensity, averageAmplitude * 25f, Time.deltaTime * 7f);  // Adjusted threshold and smoothness
+        redIntensity = Mathf.Lerp(redIntensity, averageAmplitude * 25f, Time.deltaTime * 15f);  // Adjusted threshold and smoothness
         redIntensity = Mathf.Clamp01(redIntensity);
 
         Color currentColor = background.color;
