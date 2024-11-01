@@ -14,7 +14,10 @@ public class Level3 : MonoBehaviour
     public Transform wall;
     public Image background;
     public float backgroundMusicSpeed = 1f;
-    public float cubeMoveSpeed = 2f;
+    public float initialCubeMoveSpeed = 1f; // Initial speed for the cube
+    public float maxCubeMoveSpeed = 2f; // Maximum speed for the cube
+    public float speedBuildUpTime = 3f; // Time to reach maximum speed
+    public float collisionDistanceRadius = 5f; // Collision distance radius
 
     private Camera mainCamera;
     private Transform player;
@@ -24,6 +27,8 @@ public class Level3 : MonoBehaviour
     private Vector3 playerStartPosition;
     private float[] audioSamples = new float[64];
     private float redIntensity = 0f;
+    private float cubeMoveSpeed;
+    private float speedUpElapsedTime = 0f;
 
     void Start()
     {
@@ -43,6 +48,8 @@ public class Level3 : MonoBehaviour
         {
             wallRenderer.material.color = Color.white;
         }
+
+        cubeMoveSpeed = initialCubeMoveSpeed; // Initialize cube speed
     }
 
     void Update()
@@ -118,7 +125,6 @@ public class Level3 : MonoBehaviour
 
         mainCamera.transform.position = originalPosition;
         cameraReturned = true;
-        StartCoroutine(IncreaseCubeSpeed());
     }
 
     void MoveCubeTowardsPlayer()
@@ -128,6 +134,13 @@ public class Level3 : MonoBehaviour
         Vector3 direction = (player.position - cube.position).normalized;
         direction.y = 0;
         cube.position += direction * cubeMoveSpeed * Time.deltaTime;
+
+        // Gradually increase the cube speed
+        if (speedUpElapsedTime < speedBuildUpTime)
+        {
+            speedUpElapsedTime += Time.deltaTime;
+            cubeMoveSpeed = Mathf.Lerp(initialCubeMoveSpeed, maxCubeMoveSpeed, speedUpElapsedTime / speedBuildUpTime);
+        }
     }
 
     void CheckCollisionByDistance()
@@ -136,7 +149,7 @@ public class Level3 : MonoBehaviour
 
         float distance = Vector3.Distance(cube.position, player.position);
 
-        if (distance <= 5f)  // Adjust this value if needed
+        if (distance <= collisionDistanceRadius)  // Use the manually set collision distance radius
         {
             StartCoroutine(OnCubeTouched());
         }
@@ -157,23 +170,6 @@ public class Level3 : MonoBehaviour
         }
 
         wall.localScale = targetScale;
-    }
-
-    IEnumerator IncreaseCubeSpeed()
-    {
-        float duration = 3f;
-        float elapsedTime = 0f;
-        float initialSpeed = 2f;
-        float targetSpeed = cubeMoveSpeed;
-
-        while (elapsedTime < duration)
-        {
-            cubeMoveSpeed = Mathf.Lerp(initialSpeed, targetSpeed, elapsedTime / duration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        cubeMoveSpeed = targetSpeed;
     }
 
     IEnumerator FadeInAudio(float duration)
@@ -239,17 +235,41 @@ public class Level3 : MonoBehaviour
 
         yield return new WaitForSeconds(5f);
 
-        // Reset cube speed buildup
-        cubeMoveSpeed = 2f;
+        // Maintain the same speed of the cube
+        float currentCubeMoveSpeed = cubeMoveSpeed;
 
-        // Teleport the cube back to its original position
-        cube.position = cubeSpawnPosition;
+        // Create a parallel coroutine to reset positions and fade out the image simultaneously
+        IEnumerator ResetPositionsAndFadeOutImage()
+        {
+            // Teleport the cube back to its original position
+            cube.position = cubeSpawnPosition;
 
-        // Teleport the player back to its original position
-        player.position = playerStartPosition;
+            // Teleport the player back to its original position
+            player.position = playerStartPosition;
 
-        // Restart the background audio
-        StartCoroutine(FadeInAudio(1f));
+            // Restart the background audio
+            StartCoroutine(FadeInAudio(1f));
+
+            // Fade out the display image again
+            elapsedTime = 0f;
+            while (elapsedTime < fadeDuration)
+            {
+                imgColor.a = Mathf.Lerp(1, 0, elapsedTime / fadeDuration);
+                displayImage.color = imgColor;
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            imgColor.a = 0;
+            displayImage.color = imgColor;
+            displayImage.enabled = false;
+        }
+
+        // Execute the coroutine in parallel
+        StartCoroutine(ResetPositionsAndFadeOutImage());
+
+        // Ensure the cube speed is maintained
+        cubeMoveSpeed = currentCubeMoveSpeed;
     }
 
     void OnCollisionEnter(Collision collision)
